@@ -1,0 +1,37 @@
+[project]
+name = "fiscal-copilot"
+version = "0.1.0"
+description = "Fiscal Copilot - AI agent for Dominican tax compliance"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.0",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.5.0",
+]
+aws = [
+    "boto3>=1.35.0",
+    "langgraph>=0.2.0",
+    "langgraph-checkpoint-postgres>=2.0.0",
+    "psycopg[binary]>=3.2.0",
+]
+evals = [
+    "ragas>=0.2.0",
+    "deepeval>=1.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
