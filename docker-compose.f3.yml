@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fiscal-copilot-db
+    environment:
+      POSTGRES_USER: fiscal
+      POSTGRES_PASSWORD: fiscal_demo_2026
+      POSTGRES_DB: fiscal_copilot
+    ports:
+      - "5544:5432"
+    volumes:
+      - fiscal-copilot-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "fiscal", "-d", "fiscal_copilot"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  fiscal-copilot-pgdata:
