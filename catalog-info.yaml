@@ -1,0 +1,38 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: fiscal-copilot-demo
+  description: >
+    AI agent for Dominican Republic tax compliance built on AWS Bedrock —
+    Agents, RAG (S3 Vectors), Action Groups (Lambda), Guardrails,
+    Human-in-the-Loop, observability, LLM-as-Judge evals, spec-driven development.
+    Demo for NAIIAN interview.
+  annotations:
+    github.com/project-slug: radelqui/fiscal-copilot-demo
+    backstage.io/techdocs-ref: dir:.
+    sypnose.cloud/naiian-mapping: docs/REGISTRY-NAIIAN.md
+  links:
+    - url: https://naiian.sypnose.cloud/demo/1a9b6ff25f5c485ab502d34a
+      title: Demo UI (live)
+      icon: dashboard
+    - url: https://github.com/radelqui/fiscal-copilot-demo
+      title: GitHub repo
+      icon: github
+    - url: https://naiian.sypnose.cloud/demo/1a9b6ff25f5c485ab502d34a
+      title: DEMO-GUIDE
+      icon: docs
+  tags:
+    - python
+    - fastapi
+    - aws-bedrock
+    - rag
+    - hitl
+    - evals
+    - naiian
+spec:
+  type: service
+  lifecycle: demo
+  owner: radelqui
+  system: naiian-interview
+  providesApis:
+    - fiscal-copilot-api
