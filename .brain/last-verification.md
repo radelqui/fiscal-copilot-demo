@@ -1,5 +1,5 @@
-## Verificación Consolidación Final — 2026-07-06
+## Verificacion post-auditoria SM — 2026-07-06
 
-what_changed: "Consolidación: observabilidad real, README, DEMO-GUIDE, specs, /metrics, higiene, AGENTS.md, INFORME-FINAL"
-how_verified: "82/82 pytest, adversarial 3-lens (16/16 PASS: SQL injection, XSS, creds, rate limit, auth, tests, routers, schemas, code quality, docs, specs, golden set, reports, AWS config, metrics, f-string)"
-result: "ALL PASS — 0 vulnerabilities, 0 correctness issues, 0 missing components"
+what_changed: "enableTrace=True en invoke_agent, limpieza BD sintetica"
+how_verified: "POST real a /demo/1a9b6ff25f5c485ab502d34a/ask con agente Bedrock real"
+result: "tokens_in=4203, tokens_out=356, cost_usd=0.017949, tools=[calcular_itbis], latency=7627ms"

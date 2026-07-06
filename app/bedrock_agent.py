@@ -129,6 +129,7 @@ async def _invoke_bedrock(
             agentAliasId=alias_id,
             sessionId=sid,
             inputText=query,
+            enableTrace=True,
         )
 
         full_response = ""

@@ -117,4 +117,33 @@ Servidor 67 (Frankfurt, ~5ms latencia)
 3. **PostgreSQL sin backup**: BD demo sin persistencia — aceptable para demo
 
 ---
-*Generado por arquitecto Opus, fase Consolidación Final*
+
+## Adenda — Fix Observabilidad Real (post-auditoría SM)
+
+**Problema**: tokens_in/tokens_out/cost_usd/tools llegaban a 0 contra el agente real.
+**Causa raíz**: faltaba `enableTrace=True` en `invoke_agent()` (bedrock_agent.py:127-132). Sin este flag, Bedrock no emite trace events y el parsing (correcto) nunca encuentra datos.
+**Fix**: añadido `enableTrace=True` al call de `invoke_agent`.
+
+### Evidencia — POST real a /demo/1a9b6ff25f5c485ab502d34a/ask
+
+```
+Query: "Cuanto ITBIS pago por un monto de 100000 pesos?"
+
+Response trace:
+  provider: bedrock
+  model: eu.anthropic.claude-sonnet-4-6-20250514-v1:0
+  tokens_in: 4203
+  tokens_out: 356
+  cost_usd: 0.017949
+  latency_ms: 7627.92
+  tools: [calcular_itbis(monto=100000, incluido=false)]
+```
+
+**Resultado**: tokens > 0, cost > 0, tool detectada. Dashboard y /metrics reflejan datos reales.
+
+### Limpieza BD
+
+Eliminadas 13 trazas sintéticas de tests (tenants metrics-test-*, pct-test, modelo pct-model) para dashboard limpio.
+
+---
+*Actualizado tras auditoría SM, 2026-07-06*
