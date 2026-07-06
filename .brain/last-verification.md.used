@@ -1,0 +1,44 @@
+# Verificación F1 Bootstrap — fiscal-copilot
+
+## Fecha: 2026-07-06
+## Fase: F1
+
+## Evidencia
+
+### Tests: 37/37 passed
+```
+tests/test_api.py: 11 passed
+tests/test_tools.py: 26 passed
+Total: 37 passed in 0.61s
+```
+
+### Smoke test FastAPI (USE_MOCK_AGENT=1):
+```
+GET /health → {"status": "ok", "version": "0.1.0", "mock_mode": true}
+POST /ask → {"trace_id": "ab6c80fc-...", "response": "Para un monto de RD$118,000.00 con ITBIS incluido:\n- Monto sin ITBIS: RD$100,000.00\n- ITBIS (18%): RD$18,000.00", "provider": "mock", "cost_usd": 0.0}
+```
+
+### AWS CLI instalado:
+```
+aws-cli/2.35.15 Python/3.14.5 Linux/6.8.0-107-generic
+```
+
+### golden_set.jsonl: 8 cases loaded
+```
+calc-itbis-001: calculation
+calc-itbis-002: calculation
+ncf-valid-001: validation
+ncf-invalid-001: validation
+formato-606-001: format (confirmation=true)
+kb-fecha-606: knowledge
+injection-001: injection
+hitl-606-001: hitl (confirmation=true)
+```
+
+### Verificación adversarial:
+- .gitignore: CREADO (fix aplicado)
+- Tools pure Python: PASS (solo stdlib)
+- Corpus 4 docs >200 words: PASS
+- Port 7020: LIBRE
+- No TODO/FIXME en código: PASS
+- No hardcoded paths: PASS
