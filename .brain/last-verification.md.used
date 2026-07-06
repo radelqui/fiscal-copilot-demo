@@ -1,28 +1,5 @@
-# Verificación F3 — Backend FastAPI + PostgreSQL + Observabilidad
+## Verificación F5-EVALS — 2026-07-06
 
-## Fecha: 2026-07-06
-## Fase: F3
-
-## Tests: 57/57 passed (0.44s)
-- test_tools.py: 26 passed (F1)
-- test_api.py: 11 passed (F1, actualizado para nuevo HealthResponse)
-- test_f3.py: 20 passed (F3 integration + malformed rejection)
-
-## Smoke test endpoints:
-- GET /health → db_connected: true, db_tables: 5
-- POST /ask → trace persisted in DB + approval created for 606
-- GET /traces → filtered by tenant_id, limit working
-- GET /approvals → filtered by status, tenant_id
-- POST /approvals/{id}/decide → 200 approved, 409 double-decide, 404 not found
-- GET /dashboard → HTML with cost tables by tenant/model/provider
-
-## Adversarial verification (3 lenses):
-1. SQL Injection: 5/5 PASS (psycopg3 parameterized queries)
-2. XSS: 1 FAIL found + FIXED (html.escape in dashboard.py)
-3. Edge cases: 9/9 PASS (409, 404, 503, empty results, max query, regression)
-4. F4 readiness: 8/8 PASS (facturas seeded, indexes exist, workflow_steps ready)
-
-## DB state:
-- 20 facturas (3 tenants: acme=8, global=7, caribe=5)
-- 5 tables created with indexes
-- Docker volume persistent
+what_changed: "F5-EVALS pipeline: harness, router, judges, run_all, comparativa.md"
+how_verified: "pytest 74/74 passed, evals/run_all.py executed successfully"
+result: "8/8 harness PASS, 3 routes tested, 4 judge metrics computed, $0.018 total cost within $2 budget"
