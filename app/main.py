@@ -3,12 +3,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.routers import ask, health
+from app.db import init_db, close_db
+from app.routers import ask, health, approvals, traces, dashboard
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await init_db()
     yield
+    await close_db()
 
 
 app = FastAPI(
@@ -20,3 +23,6 @@ app = FastAPI(
 
 app.include_router(health.router)
 app.include_router(ask.router)
+app.include_router(approvals.router)
+app.include_router(traces.router)
+app.include_router(dashboard.router)

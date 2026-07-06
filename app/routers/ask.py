@@ -1,3 +1,4 @@
+import json
 import os
 import time
 import uuid
@@ -6,6 +7,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from app.db import get_conn
 from app.mock_agent import mock_invoke_agent
 
 router = APIRouter()
@@ -42,17 +44,64 @@ async def ask(request: AskRequest):
         start = time.monotonic()
         result = mock_invoke_agent(request.query)
         latency = (time.monotonic() - start) * 1000
-        return AskResponse(
-            trace_id=str(uuid.uuid4()),
+
+        trace_id = str(uuid.uuid4())
+        input_tokens = len(request.query.split()) * 2
+        output_tokens = len(result["response"].split()) * 2
+
+        response = AskResponse(
+            trace_id=trace_id,
             response=result["response"],
             provider="mock",
             model="local-tools",
             tools_used=result.get("tools_used", []),
-            input_tokens=len(request.query.split()) * 2,
-            output_tokens=len(result["response"].split()) * 2,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
             cost_usd=0.0,
             latency_ms=round(latency, 2),
         )
+
+        try:
+            async with get_conn() as conn:
+                # Ensure tenant exists
+                await conn.execute(
+                    "INSERT INTO tenants (id, name) VALUES (%s, %s) "
+                    "ON CONFLICT (id) DO NOTHING",
+                    [request.tenant_id, request.tenant_id],
+                )
+                # Persist trace
+                await conn.execute(
+                    "INSERT INTO traces (trace_id, tenant_id, query, response, provider, "
+                    "model, input_tokens, output_tokens, cost_usd, latency_ms, tools_used) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    [
+                        trace_id, request.tenant_id, request.query,
+                        result["response"], "mock", "local-tools",
+                        input_tokens, output_tokens, 0.0, round(latency, 2),
+                        json.dumps(result.get("tools_used", [])),
+                    ],
+                )
+
+                # If the tool was presentar_formato_606, create an approval
+                tools_used = result.get("tools_used", [])
+                for tool in tools_used:
+                    if tool.get("tool_name") == "presentar_formato_606":
+                        await conn.execute(
+                            "INSERT INTO approvals (trace_id, tenant_id, action, payload, status) "
+                            "VALUES (%s, %s, %s, %s, 'pending')",
+                            [
+                                trace_id, request.tenant_id,
+                                "presentar_formato_606",
+                                json.dumps(tool.get("tool_input", {})),
+                            ],
+                        )
+
+                await conn.commit()
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception("Failed to persist trace")
+
+        return response
 
     raise HTTPException(
         status_code=503,

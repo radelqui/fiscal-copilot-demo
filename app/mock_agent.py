@@ -125,11 +125,12 @@ def mock_invoke_agent(query: str) -> dict[str, Any]:
                 "tools_used": [],
             }
 
-        # For 606, the number of registros is often the second number mentioned
+        # For 606, the number of registros — skip "606"/"607" (format names)
         nums = re.findall(r"\d+", query)
+        skip = {periodo, "606", "607", "608"}
         reg_count = None
         for n in nums:
-            if n != periodo and len(n) <= 4:
+            if n not in skip and len(n) <= 4:
                 reg_count = int(n)
                 break
         if reg_count is None:
