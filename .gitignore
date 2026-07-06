@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Environment / credentials
+.env
+.env.*
+!.env.example
+.aws/
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Reports (generated)
+reports/*.json
+reports/*.html
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/settings.json
+.claude/settings.local.json
