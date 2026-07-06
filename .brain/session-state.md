@@ -1,9 +1,9 @@
 ## Estado de sesion (pre-compact auto-save)
-Ultima actualizacion: 2026-07-06 18:39 UTC
+Ultima actualizacion: 2026-07-06 19:16 UTC
 Fase: interrupted-by-compact
 Branch: main
-Ultimo commit: 4bdfc42 docs: INFORME-F3.md — cierre fase F3, esperando auditoria SM
-Archivos sin commit: 5
+Ultimo commit: b28b829 state: auto-save on stop
+Archivos sin commit: 13
 
 ## NOTA
 Contexto fue compactado. Al retomar:
