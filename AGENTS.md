@@ -1,39 +1,65 @@
 # AGENTS.md — Fiscal Copilot
 
-## Convenciones de desarrollo agéntico
+## Metodología de Desarrollo Agéntico
 
-Este proyecto se desarrolla con Claude Code y subagentes especializados.
-Cada agente tiene un rol definido y reglas estrictas.
+Este proyecto fue construido usando desarrollo agéntico con Claude Code como arquitecto y sub-agentes especializados para implementación, verificación y documentación.
 
-### Agentes disponibles
+## Fases de Desarrollo
 
-| Agente | Archivo | Rol | Cuándo usar |
-|--------|---------|-----|-------------|
-| analizador | .claude/agents/analizador.md | Read-only recon | ANTES de tocar cualquier código |
-| verificador-adversarial | .claude/agents/verificador-adversarial.md | Refutar cambios | DESPUÉS de implementar |
-| aws-deployer | .claude/agents/aws-deployer.md | Crear/borrar recursos AWS | Solo en fases con infra AWS |
-| backend-dev | .claude/agents/backend-dev.md | FastAPI/PostgreSQL/LangGraph | Código de aplicación |
-| evals-engineer | .claude/agents/evals-engineer.md | Evals y comparativas | Golden set, harness, Ragas, DeepEval |
+| Fase | Descripción | Gate | Tests |
+|------|-------------|------|-------|
+| F1 — Bootstrap | Estructura, tools, tests, corpus, mock agent | GRANTED | 57 |
+| F2 — Bedrock Stack | Agent, KB, Lambda, Guardrail (SM-ejecutado) | GRANTED | — |
+| F3 — Backend | PostgreSQL, endpoints, HITL, dashboard, seed | GRANTED | 65 |
+| F5 — Evals | Harness, router, judges, comparativa | GRANTED | 74 |
+| F7-UI — Demo | Token auth, Bedrock client, chat UI | GRANTED | 74 |
+| Final — Consolidación | Observabilidad, README, specs, métricas, higiene | — | 82 |
 
-### Reglas de anti-colisión
-- Un dueño por archivo por fase
-- aws/ y recursos cloud → aws-deployer
-- app/ → backend-dev
-- evals/ y reports/ → evals-engineer
-- specs/, AGENTS.md, README → arquitecto directo
-- NUNCA 2 agentes al mismo archivo en paralelo
+## Flujo por Fase
 
-### Comandos
-```bash
-# Invocar un agente (Claude Code CLI)
-claude /agents
-
-# Ver agentes disponibles
-ls .claude/agents/
+```
+1. MÉTRICA ÉXITO — definir SQL/curl que mide delta antes/después
+2. INVESTIGAR — leer archivos completos, mapear arquitectura
+3. BLUEPRINT — escribir plan persistente antes de tocar código
+4. IMPLEMENTAR — sub-agentes paralelos, archivos distintos
+5. VERIFICAR — ejecutar métrica, delta > 0 = SUCCESS
+6. GATE — commit + tag + informe + esperar auditoría SM
 ```
 
-### Flujo de trabajo
-1. **Analizar**: lanzar analizador(es) en paralelo, read-only
-2. **Implementar**: backend-dev o aws-deployer según el área
-3. **Verificar**: 3 verificadores-adversariales en paralelo con lentes distintas
-4. **Gate**: evidencia pegada o no pasó
+## Patrones Utilizados
+
+### Spec-Driven Development
+- `specs/hitl-workflow.md` — spec retroactiva del HITL
+- `specs/metrics-endpoint.md` — spec escrita ANTES de implementar GET /metrics
+
+### LLM-as-Judge (en lugar de Ragas librería)
+- ragas 0.4.3 tenía imports rotos → implementamos faithfulness, answer_relevancy, context_precision manualmente usando Bedrock Haiku como judge
+- DeepEval GEval → Haiku fallback cuando OpenAI no disponible
+
+### Mock Agent Pattern
+- `USE_MOCK_AGENT=1` usa tools locales Python idénticas a Lambda
+- Permite desarrollo y testing sin AWS
+- Fallback automático si Bedrock no disponible
+
+### Multi-Model Evaluation
+- Router con 4 modelos: Haiku, Nova Micro, GPT-4o-mini, Sonnet 4.6
+- Golden set de 8 casos fiscales dominicanos
+- Comparativa coste/latencia/calidad documentada
+
+## Herramientas del Agente
+
+| Herramienta | Rol |
+|-------------|-----|
+| Claude Code (Opus) | Arquitecto — planifica, delega, verifica |
+| Sub-agentes (Sonnet) | Implementadores — escriben código, tests |
+| Boris hooks | Calidad — bloquean commits sin verificación |
+| pytest | Validación — 82 tests automatizados |
+| Bedrock Haiku | Judge — evalúa calidad de respuestas |
+
+## Evidencia de Desarrollo Agéntico
+
+- Cada fase tiene su INFORME (docs/INFORME-*.md) con evidencia
+- Cada commit tiene `Co-Authored-By: Claude` 
+- specs/ contiene spec-first y retroactiva
+- evals/ contiene pipeline reproducible
+- reports/ contiene resultado generado automáticamente

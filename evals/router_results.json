@@ -155,7 +155,7 @@
       "output_tokens": 0,
       "cost_usd": 0.0,
       "latency_ms": 757.98,
-      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-GazR6**********************************6eWo. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
+      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-REDACTED. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
     },
     {
       "route": "openai-gpt4o-mini",
@@ -164,7 +164,7 @@
       "output_tokens": 0,
       "cost_usd": 0.0,
       "latency_ms": 198.01,
-      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-GazR6**********************************6eWo. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
+      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-REDACTED. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
     },
     {
       "route": "openai-gpt4o-mini",
@@ -173,7 +173,7 @@
       "output_tokens": 0,
       "cost_usd": 0.0,
       "latency_ms": 155.42,
-      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-GazR6**********************************6eWo. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
+      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-REDACTED. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
     },
     {
       "route": "openai-gpt4o-mini",
@@ -182,7 +182,7 @@
       "output_tokens": 0,
       "cost_usd": 0.0,
       "latency_ms": 161.32,
-      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-GazR6**********************************6eWo. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
+      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-REDACTED. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
     },
     {
       "route": "openai-gpt4o-mini",
@@ -191,7 +191,7 @@
       "output_tokens": 0,
       "cost_usd": 0.0,
       "latency_ms": 172.92,
-      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-GazR6**********************************6eWo. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
+      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-REDACTED. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
     },
     {
       "route": "openai-gpt4o-mini",
@@ -200,7 +200,7 @@
       "output_tokens": 0,
       "cost_usd": 0.0,
       "latency_ms": 220.92,
-      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-GazR6**********************************6eWo. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
+      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-REDACTED. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
     },
     {
       "route": "openai-gpt4o-mini",
@@ -209,7 +209,7 @@
       "output_tokens": 0,
       "cost_usd": 0.0,
       "latency_ms": 154.79,
-      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-GazR6**********************************6eWo. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
+      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-REDACTED. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
     },
     {
       "route": "openai-gpt4o-mini",
@@ -218,7 +218,7 @@
       "output_tokens": 0,
       "cost_usd": 0.0,
       "latency_ms": 180.06,
-      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-GazR6**********************************6eWo. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
+      "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-REDACTED. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}"
     }
   ]
 }

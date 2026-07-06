@@ -80,3 +80,27 @@ class HealthResponse(BaseModel):
     mock_mode: bool
     db_connected: bool
     db_tables: int
+
+
+class MetricsModelBreakdown(BaseModel):
+    model: str
+    requests: int
+    cost_usd: float
+    avg_latency_ms: float
+
+
+class MetricsTenantBreakdown(BaseModel):
+    tenant_id: str
+    requests: int
+    cost_usd: float
+
+
+class MetricsResponse(BaseModel):
+    total_requests: int
+    total_cost_usd: float
+    avg_latency_ms: float
+    latency_p50_ms: float
+    latency_p95_ms: float
+    by_model: list[MetricsModelBreakdown]
+    by_tenant: list[MetricsTenantBreakdown]
+    generated_at: datetime

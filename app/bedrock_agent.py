@@ -135,6 +135,8 @@ async def _invoke_bedrock(
         tools_used = []
         requires_confirmation = False
         confirmation_payload = None
+        total_input_tokens = 0
+        total_output_tokens = 0
 
         for event in response.get("completion", []):
             if "chunk" in event:
@@ -169,22 +171,29 @@ async def _invoke_bedrock(
                             },
                             "tool_output": {},
                         })
+                if "modelInvocationOutput" in orchestration:
+                    model_output = orchestration["modelInvocationOutput"]
+                    usage = model_output.get("metadata", {}).get("usage", {})
+                    total_input_tokens += usage.get("inputTokens", 0)
+                    total_output_tokens += usage.get("outputTokens", 0)
+
+        logger.debug(
+            "Bedrock usage: in=%d out=%d tools=%s",
+            total_input_tokens,
+            total_output_tokens,
+            [t["tool_name"] for t in tools_used],
+        )
 
         latency = (time.monotonic() - start) * 1000
-
-        usage = response.get("usage", {})
-        input_tokens = usage.get("inputTokens", 0)
-        output_tokens = usage.get("outputTokens", 0)
-
-        cost_usd = _estimate_cost(input_tokens, output_tokens)
+        cost_usd = _estimate_cost(total_input_tokens, total_output_tokens)
 
         return {
             "response": full_response,
             "tools_used": tools_used,
             "provider": "bedrock",
-            "model": f"eu.anthropic.claude-sonnet-4-6-20250514-v1:0",
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
+            "model": "eu.anthropic.claude-sonnet-4-6-20250514-v1:0",
+            "input_tokens": total_input_tokens,
+            "output_tokens": total_output_tokens,
             "cost_usd": cost_usd,
             "latency_ms": round(latency, 2),
             "requires_confirmation": requires_confirmation,

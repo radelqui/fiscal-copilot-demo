@@ -5,7 +5,7 @@ from fastapi import FastAPI
 
 from app.auth import ensure_demo_token
 from app.db import init_db, close_db
-from app.routers import ask, health, approvals, traces, dashboard, demo
+from app.routers import ask, health, approvals, traces, dashboard, demo, metrics
 
 logger = logging.getLogger(__name__)
 
@@ -32,3 +32,4 @@ app.include_router(approvals.router)
 app.include_router(traces.router)
 app.include_router(dashboard.router)
 app.include_router(demo.router)
+app.include_router(metrics.router)
