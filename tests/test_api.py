@@ -14,8 +14,10 @@ class TestHealth:
         r = client.get("/health")
         assert r.status_code == 200
         data = r.json()
-        assert data["status"] == "ok"
+        assert data["version"] == "0.1.0"
         assert data["mock_mode"] is True
+        assert "db_connected" in data
+        assert "status" in data
 
     def test_health_version(self):
         r = client.get("/health")
