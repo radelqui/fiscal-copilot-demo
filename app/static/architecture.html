@@ -230,6 +230,24 @@ graph TB
     class F606 hitl
     class TRACES,APPROVALS pg
     class GS,JUDGES,ROUTER,REPORT eval
+
+    click UI "app/static/demo.html" "UI demo: chat + aprobaciones HITL"
+    click AUTH "app/auth.py" "Token 14d, 30 req/hr, cap $2/día"
+    click AGENT "app/bedrock_agent.py" "invoke_agent con enableTrace=True"
+    click METRICS_EP "app/routers/metrics.py" "JSON: totals, p50, p95, by_model, by_tenant"
+    click DASH "app/routers/dashboard.py" "HTML observabilidad"
+    click TRACES "PostgreSQL :5544 — tabla traces" "tokens, coste, latencia, tools por tenant"
+    click APPROVALS "PostgreSQL :5544 — tabla approvals" "HITL: pending → approved/rejected"
+    click GUARD "Guardrail xgn38kcg6hrq" "prompt attack + denied topics + PII"
+    click KB "KB 5I5RDNA2V1" "S3 Vectors, Titan V2 1024d, corpus DGII"
+    click LAMBDA "aws/lambda/handler.py" "3 tools: itbis, ncf, 606"
+    click ITBIS "app/tools/itbis.py" "Cálculo ITBIS 18%"
+    click NCF "app/tools/ncf.py" "Validación NCF (formato + check digit)"
+    click F606 "app/tools/formato_606.py" "Presentación 606 con HITL"
+    click GS "evals/golden_set.jsonl" "8 casos de prueba"
+    click JUDGES "evals/judges.py" "faithfulness, relevancy, context_precision, geval"
+    click ROUTER "evals/router.py" "Haiku, Nova Micro, GPT-4o-mini, Sonnet"
+    click REPORT "reports/comparativa.md" "Comparativa 4 modelos"
         </div>
     </div>
 
@@ -316,6 +334,7 @@ Evals offline: golden_set → judges (Ragas + GEval) → comparativa.md
     script.onload = function() {
         mermaid.initialize({
             startOnLoad: true,
+            securityLevel: 'loose',
             theme: 'dark',
             themeVariables: {
                 primaryColor: '#1e293b',
