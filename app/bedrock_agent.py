@@ -149,6 +149,7 @@ async def _invoke_bedrock(
                 rc = event["returnControl"]
                 if rc.get("invocationInputs"):
                     for inv in rc["invocationInputs"]:
+                        # API-based action groups
                         if "apiInvocationInput" in inv:
                             api_input = inv["apiInvocationInput"]
                             if api_input.get("actionGroupInvocationInput", {}).get(
@@ -156,6 +157,12 @@ async def _invoke_bedrock(
                             ) == "ENABLED":
                                 requires_confirmation = True
                                 confirmation_payload = api_input
+                        # Function-based action groups (our case)
+                        if "functionInvocationInput" in inv:
+                            func_input = inv["functionInvocationInput"]
+                            if func_input.get("actionInvocationType") == "USER_CONFIRMATION":
+                                requires_confirmation = True
+                                confirmation_payload = func_input
 
             if "trace" in event:
                 trace = event["trace"].get("trace", {})
@@ -187,6 +194,18 @@ async def _invoke_bedrock(
 
         latency = (time.monotonic() - start) * 1000
         cost_usd = _estimate_cost(total_input_tokens, total_output_tokens)
+
+        if requires_confirmation and not full_response.strip():
+            tool_name = "generar_reporte_arquitectura"
+            if confirmation_payload:
+                tool_name = confirmation_payload.get(
+                    "function", confirmation_payload.get("actionGroup", tool_name)
+                )
+            full_response = (
+                f"🔒 Acción sensible: {tool_name} requiere aprobación humana. "
+                "Checkpoint creado — aprueba o rechaza en la bandeja de aprobaciones. "
+                "Verificalo: registry.sypnose.cloud > CodeGraph > fiscal-copilot"
+            )
 
         return {
             "response": full_response,
