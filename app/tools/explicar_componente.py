@@ -14,15 +14,15 @@ COMPONENTES = {
         "descripcion": "KB 5I5RDNA2V1 con S3 Vectors y Titan Embedding V2 (1024d). Corpus multi-fuente sobre la propia arquitectura.",
         "modelo": "amazon.titan-embed-text-v2:0",
         "region": "eu-central-1",
-        "recursos": ["KB 5I5RDNA2V1", "DataSource WEIATOAQ9Y", "S3 fiscal-copilot-corpus"],
+        "recursos": ["KB 5I5RDNA2V1", "DataSource WEIATOAQ9Y", "S3 demo-naiian-corpus"],
         "archivo_clave": "app/bedrock_agent.py",
     },
     "action_groups": {
         "nombre": "Action Groups (Tools)",
-        "descripcion": "Lambda fiscal-copilot-tools con 3 funciones: explicar_componente, donde_verificar, generar_reporte_arquitectura. FunctionSchema con structured outputs.",
+        "descripcion": "Lambda demo-naiian-tools con 3 funciones: explicar_componente, donde_verificar, generar_reporte_arquitectura. FunctionSchema con structured outputs.",
         "modelo": "N/A",
         "region": "eu-central-1",
-        "recursos": ["Lambda fiscal-copilot-tools"],
+        "recursos": ["Lambda demo-naiian-tools"],
         "archivo_clave": "aws/lambda/handler.py",
     },
     "hitl": {
@@ -35,7 +35,7 @@ COMPONENTES = {
     },
     "guardrails": {
         "nombre": "Guardrails",
-        "descripcion": "Guardrail xgn38kcg6hrq: 4 denied topics (infra externa, credenciales, prompt verbatim, jailbreak) + 6 content filters + PROMPT_ATTACK input.",
+        "descripcion": "Guardrail xgn38kcg6hrq: 5 denied topics (infra externa, credenciales, prompt verbatim, jailbreak, contenido fiscal) + 6 content filters + PROMPT_ATTACK input.",
         "modelo": "N/A",
         "region": "eu-central-1",
         "recursos": ["Guardrail xgn38kcg6hrq"],

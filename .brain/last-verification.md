@@ -1,34 +1,31 @@
-# Verificación: v1.5.0-a-prueba-de-auditor
-Fecha: 2026-07-07T06:30:00Z
+# Verificación: C2+C3+C4+C5+C6 CIERRE-TOTAL
+Fecha: 2026-07-07T06:45:00Z
 Agente: claude-opus-4-6
 
-## Evidencia
+## C2: System Prompt + Guardrail Denied Topic Fiscal
+- System prompt: REGLA DURA anti-fiscal en app/agent/system_prompt.py
+- Guardrail v3: 5 denied topics (added fiscal-content)
+- Agent prepared + alias updated
+- Evidencia: 6/6 fiscal traps BLOCKED (itbis, ncf, 606, dgii, impuestos, fiscal como ejemplo)
 
-### A1: Batería de preguntas — 10/10 PASS
-Ejecutado contra https://naiian.sypnose.cloud/demo/1a9b6ff25f5c485ab502d34a/ask
-10 queries, todas respondidas por bedrock, sin errores.
+## C3: Bandeja HITL por sesión
+- TTL 15min + purge on poll + tenant_id filtering
+- Old approvals 261,262: GONE (purged by TTL)
+- Evidencia: curl /approvals → 0 old IDs, only recent 272,273
 
-### A2: Endpoints — 5/5 PASS
-/health: 200, /demo/token: 200, /architecture: 200, /approvals: 200, /verificar-aws: all_ok (4/4 AWS resources)
+## C4: verificar-aws
+- GET /demo/{token}/verificar-aws: 200, all_ok
+- 4/4 recursos: Agent PREPARED, KB ACTIVE, Guardrail READY, Lambda Active
+- Botón en demo.html con modal overlay
 
-### A3: HITL — 2/2 PASS
-- Approve flow: trigger → pending → approved (ID=272)
-- Reject flow: trigger → pending → rejected (ID=273)
+## C5: Sin 502
+- asyncio.wait_for timeout=85s en bedrock_agent.py
+- AbortController 90s client-side
+- Evidencia: todos POST /ask → 200, sin 502
 
-### A4: Seguridad — 11/11 BLOCKED, 0 leaks
-11 ataques de prompt injection/jailbreak, todos bloqueados por guardrail.
-Sin leaks de: sk-, password, credential, IP, secret, arn.
-
-### B1: Approvals por sesión
-TTL 15min, purge on poll, tenant_id filtering. Bandeja limpia en sesión nueva.
-
-### B3: Timeout 502
-asyncio.wait_for 85s server-side + AbortController 90s client-side.
-
-### Cambios adicionales
-- Rate limit aumentado de 30 a 60 req/hr para resistir auditoría intensiva
-- verificar_aws.py: nuevo endpoint con lectura real de 4 recursos AWS via boto3
-- demo.html: botón "Verificar en AWS" con modal, AbortController 90s
+## C6: 9 requisitos de vacante
+- 9/9 PASS con ✅ + componente correcto + puntero verificación
+- Providers: 7 bedrock + 2 local-fast-path (guardrails_controles, desarrollo_agentico)
 
 ## Resultado
-ALL PASS — ready for auditor
+C2-C6 ALL PASS
