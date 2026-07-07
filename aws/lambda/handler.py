@@ -1,116 +1,71 @@
 """Lambda fiscal-copilot-tools — action group del Bedrock Agent.
 
-Port stdlib-puro de app/tools/ (calcular_itbis, validar_ncf, presentar_formato_606).
+3 tools de composicion: explicar_componente, donde_verificar, generar_reporte_arquitectura.
 Formato de eventos: Bedrock Agents function details (functionSchema).
 """
-import calendar
 import json
-import re
 
-TASA_ITBIS = 0.18
+COMPONENTES = {
+    "bedrock_agent": {"nombre": "Bedrock Agent", "descripcion": "Agent ID 2BOPZRAI7X, Claude Sonnet 4.6, eu-central-1. Orquesta KB, tools y guardrail.", "modelo": "eu.anthropic.claude-sonnet-4-6", "region": "eu-central-1", "recursos": ["Agent 2BOPZRAI7X", "Alias TJRZR1FCDY"], "archivo_clave": "app/bedrock_agent.py"},
+    "rag": {"nombre": "Knowledge Base (RAG)", "descripcion": "KB 5I5RDNA2V1 con S3 Vectors y Titan Embedding V2 (1024d). Corpus multi-fuente.", "modelo": "amazon.titan-embed-text-v2:0", "region": "eu-central-1", "recursos": ["KB 5I5RDNA2V1", "DataSource WEIATOAQ9Y"], "archivo_clave": "app/bedrock_agent.py"},
+    "action_groups": {"nombre": "Action Groups (Tools)", "descripcion": "Lambda con 3 funciones: explicar_componente, donde_verificar, generar_reporte_arquitectura.", "modelo": "N/A", "region": "eu-central-1", "recursos": ["Lambda fiscal-copilot-tools"], "archivo_clave": "aws/lambda/handler.py"},
+    "hitl": {"nombre": "Human-in-the-Loop", "descripcion": "generar_reporte_arquitectura con requireConfirmation. returnControl + bandeja aprobacion.", "modelo": "N/A", "region": "N/A", "recursos": ["returnControl", "approvals table"], "archivo_clave": "app/routers/demo.py"},
+    "guardrails": {"nombre": "Guardrails", "descripcion": "Guardrail xgn38kcg6hrq: denied topics + content filters + PROMPT_ATTACK.", "modelo": "N/A", "region": "eu-central-1", "recursos": ["Guardrail xgn38kcg6hrq"], "archivo_clave": "N/A"},
+    "evals": {"nombre": "Evaluaciones LLM", "descripcion": "golden_set + Ragas + DeepEval + router comparativa.", "modelo": "N/A", "region": "N/A", "recursos": ["golden_set.jsonl"], "archivo_clave": "evals/run_all.py"},
+    "observabilidad": {"nombre": "Observabilidad", "descripcion": "Traces PostgreSQL: tokens, coste, latencia. /metrics + /dashboard.", "modelo": "N/A", "region": "N/A", "recursos": ["/metrics", "/dashboard"], "archivo_clave": "app/routers/traces.py"},
+    "backend": {"nombre": "Backend FastAPI", "descripcion": "FastAPI + PostgreSQL. Auth token, rate limiting, cost cap.", "modelo": "N/A", "region": "eu-central-1", "recursos": ["FastAPI :7020", "PostgreSQL :5544"], "archivo_clave": "app/main.py"},
+}
 
-TIPOS_NCF = {
-    "01": ("Factura de Credito Fiscal", True),
-    "02": ("Factura de Consumo", False),
-    "03": ("Nota de Debito", False),
-    "04": ("Nota de Credito", False),
-    "14": ("Regimen Especial", False),
-    "15": ("Gubernamental", False),
-    "31": ("Factura de Credito Fiscal Electronica", True),
-    "32": ("Factura de Consumo Electronica", False),
-    "33": ("Nota de Debito Electronica", False),
-    "34": ("Nota de Credito Electronica", False),
+VERIFICACION = {
+    "bedrock_agent": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/bedrock_agent.py", "architecture": "/architecture (nodo AGENT)"},
+    "rag": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/bedrock_agent.py", "architecture": "/architecture (nodo KB)"},
+    "action_groups": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > aws/lambda/handler.py", "architecture": "/architecture (nodo LAMBDA)"},
+    "hitl": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/routers/demo.py", "architecture": "/architecture (nodo HITL)"},
+    "guardrails": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot", "architecture": "/architecture (nodo GUARDRAIL)"},
+    "evals": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > evals/", "architecture": "N/A"},
+    "observabilidad": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/routers/traces.py", "architecture": "/architecture (nodo PostgreSQL)"},
+    "backend": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/main.py", "architecture": "/architecture (nodo FastAPI)"},
 }
 
 
-def calcular_itbis(monto: float, incluido: bool = False) -> dict:
-    if monto <= 0:
-        raise ValueError("El monto debe ser mayor que 0")
-    if incluido:
-        base = round(monto / (1 + TASA_ITBIS), 2)
-        itbis = round(monto - base, 2)
-        total = round(monto, 2)
+def explicar_componente(componente: str) -> dict:
+    componente = (componente or "").strip().lower().replace(" ", "_").replace("-", "_")
+    if componente not in COMPONENTES:
+        raise ValueError(f"Componente desconocido: {componente}. Validos: {', '.join(sorted(COMPONENTES))}")
+    return {**COMPONENTES[componente], "componente": componente}
+
+
+def donde_verificar(componente: str) -> dict:
+    componente = (componente or "").strip().lower().replace(" ", "_").replace("-", "_")
+    if componente not in VERIFICACION:
+        raise ValueError(f"Componente desconocido: {componente}. Validos: {', '.join(sorted(VERIFICACION))}")
+    return {"componente": componente, **VERIFICACION[componente]}
+
+
+def generar_reporte_arquitectura(secciones: str = "todas") -> dict:
+    validas = list(COMPONENTES.keys())
+    if secciones.strip().lower() in ("todas", "all", ""):
+        lista = validas
     else:
-        base = round(monto, 2)
-        itbis = round(monto * TASA_ITBIS, 2)
-        total = round(base + itbis, 2)
+        lista = [s.strip().lower().replace(" ", "_").replace("-", "_") for s in secciones.split(",")]
+        invalidas = [s for s in lista if s not in validas]
+        if invalidas:
+            raise ValueError(f"Secciones invalidas: {invalidas}")
     return {
-        "monto_sin_itbis": base,
-        "itbis": itbis,
-        "monto_con_itbis": total,
-        "tasa": TASA_ITBIS,
-    }
-
-
-def validar_ncf(ncf: str) -> dict:
-    ncf = (ncf or "").strip().upper()
-    errores = []
-    tipo_codigo = None
-    if re.fullmatch(r"B\d{10}", ncf):
-        tipo_codigo = ncf[1:3]
-    elif re.fullmatch(r"E\d{12}", ncf):
-        tipo_codigo = ncf[1:3]
-    else:
-        errores.append(
-            "Formato invalido: se espera B+10 digitos (fisico) o E+12 digitos (e-NCF)"
-        )
-    tipo_nombre = None
-    da_credito = False
-    if tipo_codigo is not None:
-        if tipo_codigo in TIPOS_NCF:
-            tipo_nombre, da_credito = TIPOS_NCF[tipo_codigo]
-        else:
-            errores.append(f"Tipo de NCF desconocido: {tipo_codigo}")
-    return {
-        "ncf": ncf,
-        "valido": not errores,
-        "tipo_codigo": tipo_codigo,
-        "tipo_nombre": tipo_nombre,
-        "da_credito_fiscal": da_credito,
-        "errores": errores,
-    }
-
-
-def presentar_formato_606(periodo: str, registros: int) -> dict:
-    if not re.fullmatch(r"\d{6}", periodo or ""):
-        raise ValueError("Periodo invalido: formato AAAAMM")
-    anio, mes = int(periodo[:4]), int(periodo[4:])
-    if not 1 <= mes <= 12:
-        raise ValueError("Periodo invalido: mes fuera de rango")
-    if registros <= 0:
-        raise ValueError("La cantidad de registros debe ser mayor que 0")
-    mes_sig, anio_sig = (mes + 1, anio) if mes < 12 else (1, anio + 1)
-    dia_limite = min(15, calendar.monthrange(anio_sig, mes_sig)[1])
-    fecha_limite = f"{anio_sig:04d}-{mes_sig:02d}-{dia_limite:02d}"
-    return {
-        "periodo": periodo,
-        "registros": registros,
-        "fecha_limite": fecha_limite,
+        "secciones": lista,
         "estado": "PENDIENTE_APROBACION",
-        "mensaje": (
-            f"Presentacion del formato 606 periodo {periodo} con {registros} registros "
-            f"preparada. Requiere aprobacion humana antes de enviarse a la DGII "
-            f"(fecha limite: {fecha_limite})."
-        ),
+        "mensaje": f"Reporte de arquitectura ({len(lista)} secciones) preparado. Requiere aprobacion humana.",
     }
 
 
 def _parametros(event: dict) -> dict:
-    return {p["name"]: p.get("value") for p in event.get("parameters", [])}
-
-
-def _bool(v) -> bool:
-    return str(v).strip().lower() in ("true", "1", "si", "sí", "yes")
+    return {p["name"]: p.get("value", "") for p in event.get("parameters", [])}
 
 
 DISPATCH = {
-    "calcular_itbis": lambda p: calcular_itbis(
-        monto=float(p["monto"]), incluido=_bool(p.get("incluido", "false"))
-    ),
-    "validar_ncf": lambda p: validar_ncf(ncf=str(p["ncf"])),
-    "presentar_formato_606": lambda p: presentar_formato_606(
-        periodo=str(p["periodo"]), registros=int(float(p["registros"]))
-    ),
+    "explicar_componente": lambda p: explicar_componente(p.get("componente", "")),
+    "donde_verificar": lambda p: donde_verificar(p.get("componente", "")),
+    "generar_reporte_arquitectura": lambda p: generar_reporte_arquitectura(p.get("secciones", "todas")),
 }
 
 

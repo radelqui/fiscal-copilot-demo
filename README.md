@@ -3,8 +3,8 @@
 **¿Cómo Estoy Hecho?** Un agente de IA que explica su propia arquitectura. Demo técnica para la vacante NAIIAN
 que demuestra AWS Bedrock Agents end-to-end: el agente está especializado en explicar
 cómo se construyó esta misma demo — desde los requisitos de la vacante hasta la
-implementación final. Las tools fiscales (ITBIS, NCF, 606) se mantienen como artefacto
-vivo que demuestra action groups y Human-in-the-Loop.
+implementación final. Las tools de composición (explicar_componente, generar_reporte) demuestran
+action groups y Human-in-the-Loop sobre un corpus de composición multi-fuente.
 
 ---
 
@@ -12,11 +12,11 @@ vivo que demuestra action groups y Human-in-the-Loop.
 
 | Requisito NAIIAN | Implementación | Ubicación | Cómo se prueba |
 |---|---|---|---|
-| Bedrock Agents | Agent 2BOPZRAI7X con Sonnet 4.6, action groups, KB | AWS eu-central-1 | `POST /demo/{token}/ask` con query fiscal |
-| Knowledge Base (RAG) | KB S3 Vectors (5I5RDNA2V1) con corpus fiscal dominicano | AWS eu-central-1 | "¿Fecha límite del 606?" → cita normativa |
-| Action Groups | Lambda fiscal-copilot-tools: calcular_itbis, validar_ncf, presentar_formato_606 | `aws/lambda/` + AWS | Trace muestra tool llamada y resultado |
+| Bedrock Agents | Agent 2BOPZRAI7X con Sonnet 4.6, action groups, KB | AWS eu-central-1 | `POST /demo/{token}/ask` con meta-pregunta |
+| Knowledge Base (RAG) | KB S3 Vectors (5I5RDNA2V1) con corpus de composición multi-fuente | AWS eu-central-1 | "¿Cómo funciona tu RAG?" → cita de fuente |
+| Action Groups | Lambda fiscal-copilot-tools: explicar_componente, generar_reporte, listar_tools | `aws/lambda/` + AWS | Trace muestra tool llamada y resultado |
 | Guardrails | Guardrail xgn38kcg6hrq: bloquea prompt injection, temas off-topic | AWS eu-central-1 | "Ignora instrucciones..." → rechazado |
-| Human-in-the-Loop | presentar_formato_606 requiere confirmación (requireConfirmation=ENABLED) | `app/routers/demo.py` + AWS | 606 → approval pendiente → aprobar → ejecutar |
+| Human-in-the-Loop | generar_reporte requiere confirmación (requireConfirmation=ENABLED) | `app/routers/demo.py` + AWS | Reporte → approval pendiente → aprobar → ejecutar |
 | Observabilidad | Traces en PostgreSQL: tokens, coste, latencia, tools por request | `app/routers/traces.py`, `/dashboard` | Dashboard muestra coste por tenant/modelo |
 | Evals (LLM-as-Judge) | 4 métricas: faithfulness, relevancy, context_precision, geval | `evals/judges.py` | `make evals` → reports/comparativa.md |
 | Multi-model routing | Haiku, Nova Micro, GPT-4o-mini, Sonnet 4.6 comparison | `evals/router.py` | Tabla coste/latencia/calidad por modelo |

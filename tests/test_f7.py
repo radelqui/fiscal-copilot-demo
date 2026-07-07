@@ -76,7 +76,7 @@ class TestDemoAsk:
     def test_ask_returns_response_and_trace(self, db_client, demo_token):
         r = db_client.post(
             f"/demo/{demo_token}/ask",
-            json={"query": "¿Cuánto ITBIS pago por 25000 pesos?"},
+            json={"query": "¿Cómo está construido el agente Bedrock?"},
         )
         assert r.status_code == 200
         data = r.json()
@@ -107,14 +107,14 @@ class TestDemoAsk:
     def test_ask_persists_trace_to_db(self, db_client, demo_token):
         r = db_client.post(
             f"/demo/{demo_token}/ask",
-            json={"query": "Valida NCF E010000000042", "tenant_id": "demo-visitor"},
+            json={"query": "¿Dónde verifico el componente RAG?", "tenant_id": "demo-visitor"},
         )
         assert r.status_code == 200
 
         traces = db_client.get("/traces?tenant_id=demo-visitor&limit=5")
         assert traces.status_code == 200
         queries = [t["query"] for t in traces.json()["traces"]]
-        assert any("E010000000042" in q for q in queries)
+        assert any("RAG" in q for q in queries)
 
 
 class TestDemoApprovals:
@@ -128,7 +128,7 @@ class TestDemoApprovals:
         r = db_client.post(
             f"/demo/{demo_token}/ask",
             json={
-                "query": "Presenta el formato 606 del periodo 202607 con 8 registros",
+                "query": "Genera un reporte de arquitectura completo",
                 "tenant_id": "demo-visitor",
             },
         )
@@ -158,7 +158,7 @@ class TestDemoApprovals:
         r = db_client.post(
             f"/demo/{demo_token}/ask",
             json={
-                "query": "Presenta el 606 del periodo 202608 con 3 registros",
+                "query": "Genera un reporte de arquitectura del backend",
                 "tenant_id": "demo-visitor",
             },
         )
@@ -185,7 +185,7 @@ class TestDemoApprovals:
         r = db_client.post(
             f"/demo/{demo_token}/ask",
             json={
-                "query": "Presenta el 606 del periodo 202609 con 2 registros",
+                "query": "Genera un reporte de arquitectura de las evals",
                 "tenant_id": "demo-visitor",
             },
         )
@@ -209,13 +209,13 @@ class TestRateLimit:
         for i in range(RATE_LIMIT_PER_HOUR):
             r = db_client.post(
                 f"/demo/{demo_token}/ask",
-                json={"query": f"ITBIS de {1000 + i}"},
+                json={"query": f"Explica componente {1000 + i}"},
             )
             assert r.status_code == 200, f"Request {i+1} failed unexpectedly"
 
         r = db_client.post(
             f"/demo/{demo_token}/ask",
-            json={"query": "ITBIS de 999999"},
+            json={"query": "Explica componente bedrock"},
         )
         assert r.status_code == 429
         assert "rate" in r.json()["detail"].lower() or "limit" in r.json()["detail"].lower()

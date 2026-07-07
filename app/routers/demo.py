@@ -106,7 +106,7 @@ async def demo_ask(token: str, request: DemoAskRequest):
                     "VALUES (%s, %s, %s, %s, 'pending')",
                     [
                         trace_id, request.tenant_id,
-                        "presentar_formato_606",
+                        "generar_reporte_arquitectura",
                         json.dumps(result.get("confirmation_payload") or {}),
                     ],
                 )

@@ -86,7 +86,7 @@ def _invoke_mock(query: str) -> dict[str, Any]:
     latency = (time.monotonic() - start) * 1000
 
     requires_confirmation = any(
-        t.get("tool_name") == "presentar_formato_606"
+        t.get("tool_name") == "generar_reporte_arquitectura"
         for t in result.get("tools_used", [])
     )
 

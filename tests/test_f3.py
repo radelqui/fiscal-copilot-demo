@@ -25,7 +25,7 @@ class TestHealthWithDB:
 class TestAskWithPersistence:
     def test_ask_persists_trace(self, db_client):
         r = db_client.post("/ask", json={
-            "query": "¿Cuánto ITBIS pago por 50000?",
+            "query": "¿Cómo está construido el agente Bedrock?",
             "tenant_id": "tenant-acme",
         })
         assert r.status_code == 200
@@ -38,7 +38,7 @@ class TestAskWithPersistence:
 
     def test_ask_creates_approval_for_606(self, db_client):
         r = db_client.post("/ask", json={
-            "query": "Presenta el formato 606 del periodo 202606 con 10 registros",
+            "query": "Genera un reporte de arquitectura de todas las secciones",
             "tenant_id": "tenant-acme",
         })
         assert r.status_code == 200
@@ -53,7 +53,7 @@ class TestAskWithPersistence:
 class TestApprovals:
     def _create_pending_approval(self, db_client) -> int:
         r = db_client.post("/ask", json={
-            "query": "Presenta el 606 del periodo 202601 con 5 registros",
+            "query": "Genera un reporte de toda la arquitectura",
             "tenant_id": "tenant-caribe",
         })
         trace_id = r.json()["trace_id"]
@@ -108,7 +108,7 @@ class TestApprovals:
 class TestTraces:
     def test_list_traces_with_filter(self, db_client):
         db_client.post("/ask", json={
-            "query": "¿Qué es el ITBIS?",
+            "query": "¿Cómo funciona el RAG?",
             "tenant_id": "tenant-global",
         })
         r = db_client.get("/traces?tenant_id=tenant-global")
@@ -125,7 +125,7 @@ class TestTraces:
         assert len(r.json()["traces"]) <= 2
 
     def test_trace_has_all_fields(self, db_client):
-        db_client.post("/ask", json={"query": "Calcula ITBIS de 100000"})
+        db_client.post("/ask", json={"query": "Explica el componente bedrock_agent"})
         r = db_client.get("/traces?limit=1")
         trace = r.json()["traces"][0]
         required = {"trace_id", "tenant_id", "query", "response", "provider",
@@ -143,7 +143,7 @@ class TestDashboard:
         assert "Dashboard" in r.text
 
     def test_dashboard_shows_tables(self, db_client):
-        db_client.post("/ask", json={"query": "ITBIS de 1000", "tenant_id": "tenant-acme"})
+        db_client.post("/ask", json={"query": "Explica los guardrails", "tenant_id": "tenant-acme"})
         r = db_client.get("/dashboard")
         assert r.status_code == 200
         assert "tenant-acme" in r.text or "Tenant" in r.text

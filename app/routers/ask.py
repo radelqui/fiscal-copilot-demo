@@ -82,16 +82,16 @@ async def ask(request: AskRequest):
                     ],
                 )
 
-                # If the tool was presentar_formato_606, create an approval
+                # If the tool was generar_reporte_arquitectura, create an approval
                 tools_used = result.get("tools_used", [])
                 for tool in tools_used:
-                    if tool.get("tool_name") == "presentar_formato_606":
+                    if tool.get("tool_name") == "generar_reporte_arquitectura":
                         await conn.execute(
                             "INSERT INTO approvals (trace_id, tenant_id, action, payload, status) "
                             "VALUES (%s, %s, %s, %s, 'pending')",
                             [
                                 trace_id, request.tenant_id,
-                                "presentar_formato_606",
+                                "generar_reporte_arquitectura",
                                 json.dumps(tool.get("tool_input", {})),
                             ],
                         )
