@@ -1,6 +1,10 @@
-# Fiscal Copilot
+# Fiscal Copilot — Meta-Demo
 
-AI agent for Dominican Republic tax compliance — demo for NAIIAN interview
+**Agente que explica su propia arquitectura.** Demo técnica para la vacante NAIIAN
+que demuestra AWS Bedrock Agents end-to-end: el agente está especializado en explicar
+cómo se construyó esta misma demo — desde los requisitos de la vacante hasta la
+implementación final. Las tools fiscales (ITBIS, NCF, 606) se mantienen como artefacto
+vivo que demuestra action groups y Human-in-the-Loop.
 
 ---
 
