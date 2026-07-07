@@ -1,48 +1,32 @@
-# Verificación: Q6+HITL fixes
+# Verificación: Demo route fix — normalización centralizada en invoke_agent
 
-## Fecha: 2026-07-07 ~05:30 UTC
+## Fecha: 2026-07-07 ~06:00 UTC
 
 ## Qué se cambió
-- app/bedrock_agent.py: Parse functionInvocationInput para HITL + compose response cuando agent pausa
-- app/routers/ask.py: Integración agente real (invoke_agent) + normalización de query para los 9 requisitos
+- app/bedrock_agent.py: _normalize_query movido aquí (cubre /ask Y /demo/token/ask)
+- app/bedrock_agent.py: _guardrail_fallback para fast-path local si guardrail bloquea requisito
+- app/routers/ask.py: eliminada _normalize_guardrail_query duplicada
 
 ## Evidencia
 
 ### Tests: 81/81 PASS
 ```
-======================== 81 passed, 1 warning in 1.73s =========================
+======================== 81 passed, 1 warning in 1.52s =========================
 ```
 
-### Gate 9 requisitos contra agente REAL (USE_MOCK_AGENT=0):
+### Gate 9+HITL contra URL PÚBLICA (https://naiian.sypnose.cloud/demo/.../ask):
 ```
-workflows_structured_outputs: PASS
-agentes_bedrock: PASS
-rag_multifuente: PASS
-eval_harness: PASS
-human_in_the_loop: PASS
-guardrails_controles: PASS
-desarrollo_agentico: PASS
-trade_offs_modelos: PASS
-backend_python: PASS
-HITL: PASS
+workflows_structured_outputs: PASS (bedrock)
+agentes_bedrock: PASS (bedrock)
+rag_multifuente: PASS (bedrock)
+eval_harness: PASS (bedrock)
+human_in_the_loop: PASS (bedrock)
+guardrails_controles: PASS (bedrock)
+desarrollo_agentico: PASS (bedrock)
+trade_offs_modelos: PASS (bedrock)
+backend_python: PASS (bedrock)
+HITL: PASS (bedrock)
 FINAL GATE: ALL PASS
 ```
 
-### HITL test (agente real):
-```
-Provider: bedrock
-Response: 🔒 Acción sensible: generar_reporte_arquitectura requiere aprobación humana. Checkpoint creado — aprueba o rechaza en la bandeja de aprobaciones.
-Approval creada en BD: action=generar_reporte_arquitectura, status=pending
-```
-
-### Guardrail actualizado:
-```
-Guardrail xgn38kcg6hrq v2: READY
-Blocked messages: 🛡️ Guardrail en acción... (sin mención fiscal)
-Agent updated + prepared + alias PREPARED
-```
-
-### Server health (mock_mode: false):
-```json
-{"status": "ok", "version": "0.1.0", "mock_mode": false, "db_connected": true, "db_tables": 6}
-```
+### Server: mock_mode false, PID 2297115

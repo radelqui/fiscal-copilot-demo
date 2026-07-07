@@ -34,37 +34,9 @@ class AskResponse(BaseModel):
     latency_ms: float
 
 
-def _normalize_guardrail_query(query: str) -> str:
-    """Wrap detected vacancy requirements with explicit confirmation instruction.
-
-    For guardrails_controles (req 6), also rephrase to avoid PROMPT_ATTACK filter.
-    For all other requisitos, wrap with instruction to force confirmation format.
-    """
-    from app.tools.explicar_componente import detectar_requisito
-    req = detectar_requisito(query)
-    if req is None:
-        return query
-    if req.requisito_id == "guardrails_controles":
-        safe_query = (
-            "Requisito de vacante: guardrails, límites y controles de seguridad "
-            "del agente. ¿Lo cumples y cómo está implementado?"
-        )
-    else:
-        safe_query = query
-    return (
-        f"[REQUISITO DE VACANTE DETECTADO] {safe_query}\n"
-        f"Tu PRIMERA línea debe ser exactamente: ✅ Sí, cumplo este requisito: {req.confirma}\n"
-        "Luego explica la implementación con los componentes involucrados y "
-        "cierra con el puntero registry.sypnose.cloud > CodeGraph > fiscal-copilot."
-    )
-
-
 @router.post("/ask", response_model=AskResponse)
 async def ask(request: AskRequest):
-    # M2: Normalize query for guardrail-sensitive requisitos
-    effective_query = _normalize_guardrail_query(request.query)
-
-    result = await bedrock_invoke_agent(effective_query, tenant_id=request.tenant_id)
+    result = await bedrock_invoke_agent(request.query, tenant_id=request.tenant_id)
 
     trace_id = str(uuid.uuid4())
 
