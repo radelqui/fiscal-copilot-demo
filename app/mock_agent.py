@@ -89,7 +89,7 @@ def mock_invoke_agent(query: str) -> dict[str, Any]:
             f"- **Región**: {result.region}\n"
             f"- **Recursos**: {', '.join(result.recursos)}\n"
             f"- **Archivo clave**: `{result.archivo_clave}`\n\n"
-            f"Puedes verificarlo: registry.sypnose.cloud > CodeGraph > fiscal-copilot > `{result.archivo_clave}`"
+            f"Puedes verificarlo: registry.sypnose.cloud/demo > `{result.archivo_clave}`"
         )
 
     elif intent == "requisito_vacante":
@@ -114,7 +114,7 @@ def mock_invoke_agent(query: str) -> dict[str, Any]:
             f"✅ Sí, cumplo este requisito: {req_result.confirma}\n\n"
             f"**Componentes involucrados:**\n"
             + "\n".join(comp_details)
-            + "\n\nVerifícalo en: registry.sypnose.cloud > CodeGraph > fiscal-copilot"
+            + "\n\nVerifícalo en: registry.sypnose.cloud/demo"
         )
 
     elif intent == "donde_verificar":

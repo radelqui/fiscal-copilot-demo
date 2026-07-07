@@ -14,7 +14,7 @@ action groups y Human-in-the-Loop sobre un corpus de composición multi-fuente.
 |---|---|---|---|
 | Bedrock Agents | Agent 2BOPZRAI7X con Sonnet 4.6, action groups, KB | AWS eu-central-1 | `POST /demo/{token}/ask` con meta-pregunta |
 | Knowledge Base (RAG) | KB S3 Vectors (5I5RDNA2V1) con corpus de composición multi-fuente | AWS eu-central-1 | "¿Cómo funciona tu RAG?" → cita de fuente |
-| Action Groups | Lambda fiscal-copilot-tools: explicar_componente, generar_reporte, listar_tools | `aws/lambda/` + AWS | Trace muestra tool llamada y resultado |
+| Action Groups | Lambda demo-naiian-tools: explicar_componente, generar_reporte, listar_tools | `aws/lambda/` + AWS | Trace muestra tool llamada y resultado |
 | Guardrails | Guardrail xgn38kcg6hrq: bloquea prompt injection, temas off-topic | AWS eu-central-1 | "Ignora instrucciones..." → rechazado |
 | Human-in-the-Loop | generar_reporte requiere confirmación (requireConfirmation=ENABLED) | `app/routers/demo.py` + AWS | Reporte → approval pendiente → aprobar → ejecutar |
 | Observabilidad | Traces en PostgreSQL: tokens, coste, latencia, tools por request | `app/routers/traces.py`, `/dashboard` | Dashboard muestra coste por tenant/modelo |
@@ -72,7 +72,7 @@ source ~/.env-demototal              # AWS credentials
 # 2. Base de datos
 docker run -d --name fiscal-pg -p 5544:5432 \
   -e POSTGRES_USER=fiscal -e POSTGRES_PASSWORD=fiscal_demo_2026 \
-  -e POSTGRES_DB=fiscal_copilot postgres:16
+  -e POSTGRES_DB=demo_naiian postgres:16
 
 # 3. API
 python -m venv .venv && source .venv/bin/activate
@@ -92,7 +92,7 @@ make evals  # pipeline completo → reports/comparativa.md
 ## Project Structure
 
 ```
-fiscal-copilot/
+demo-naiian/
 ├── app/                  # FastAPI application
 │   ├── main.py
 │   ├── routers/          # demo, traces, metrics, dashboard
@@ -104,7 +104,7 @@ fiscal-copilot/
 ├── specs/                # Spec-driven development artifacts
 │   └── metrics-endpoint.md
 ├── aws/                  # Lambda code, IDs, deployment scripts
-│   ├── lambda/           # fiscal-copilot-tools handler
+│   ├── lambda/           # demo-naiian-tools handler
 │   └── ids.env.example
 ├── docs/                 # Architecture decisions, interview notes
 ├── tests/                # 74 pytest tests

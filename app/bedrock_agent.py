@@ -71,13 +71,13 @@ def _normalize_query(query: str) -> str:
             "Requisito de vacante: guardrails, límites y controles de seguridad "
             "del agente. ¿Lo cumples y cómo está implementado?\n"
             "Tu PRIMERA línea debe ser: ✅ Sí, cumplo este requisito. "
-            "Luego explica la implementación y cierra con registry.sypnose.cloud > CodeGraph > fiscal-copilot."
+            "Luego explica la implementación y cierra con registry.sypnose.cloud/demo."
         )
     return (
         f"[REQUISITO DE VACANTE DETECTADO] {query}\n"
         f"Tu PRIMERA línea debe ser exactamente: ✅ Sí, cumplo este requisito: {req.confirma}\n"
         "Luego explica la implementación con los componentes involucrados y "
-        "cierra con el puntero registry.sypnose.cloud > CodeGraph > fiscal-copilot."
+        "cierra con el puntero registry.sypnose.cloud/demo."
     )
 
 
@@ -101,7 +101,7 @@ def _guardrail_fallback(query: str) -> dict[str, Any] | None:
         f"✅ Sí, cumplo este requisito: {req.confirma}\n\n"
         f"**Componentes involucrados:**\n"
         + "\n".join(comp_details)
-        + "\n\nVerifícalo en: registry.sypnose.cloud > CodeGraph > fiscal-copilot"
+        + "\n\nVerifícalo en: registry.sypnose.cloud/demo"
     )
     return {
         "response": response,
@@ -147,7 +147,25 @@ async def invoke_agent(
     if not is_bedrock_available() or os.environ.get("USE_MOCK_AGENT", "0") == "1":
         return _invoke_mock(effective_query)
 
-    result = await _invoke_bedrock(effective_query, session_id)
+    try:
+        result = await _invoke_bedrock(effective_query, session_id)
+    except Exception as e:
+        logger.exception("Bedrock invocation failed: %s", e)
+        return {
+            "response": (
+                "⚠️ El agente no pudo completar la solicitud en este momento. "
+                "Por favor intenta de nuevo en unos segundos."
+            ),
+            "tools_used": [],
+            "provider": "bedrock",
+            "model": "eu.anthropic.claude-sonnet-4-6-20250514-v1:0",
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cost_usd": 0.0,
+            "latency_ms": 0.0,
+            "requires_confirmation": False,
+            "confirmation_payload": None,
+        }
 
     if result["response"].startswith(_GUARDRAIL_BLOCK_PREFIX):
         fallback = _guardrail_fallback(query)
@@ -314,7 +332,7 @@ def _invoke_bedrock_sync(
             full_response = (
                 f"🔒 Acción sensible: {tool_name} requiere aprobación humana. "
                 "Checkpoint creado — aprueba o rechaza en la bandeja de aprobaciones. "
-                "Verificalo: registry.sypnose.cloud > CodeGraph > fiscal-copilot"
+                "Verificalo: registry.sypnose.cloud/demo"
             )
 
         return {

@@ -2,7 +2,7 @@
 
 ## Introducción
 
-Fiscal Copilot es una demo técnica construida para la entrevista en NAIIAN, una empresa especializada en soluciones de inteligencia artificial sobre AWS. El objetivo fue demostrar competencias end-to-end sobre AWS Bedrock: no basta con invocar un modelo, hay que componer agentes con herramientas reales, asegurarlos con guardrails, evaluarlos con métricas objetivas, y operar todo con observabilidad de producción. El dominio elegido fue el cumplimiento fiscal dominicano (ITBIS, NCF, Formato 606), un caso de uso con suficiente complejidad semántica para que la arquitectura tenga sentido real y no sea un hola-mundo de chatbot.
+¿Cómo Estoy Hecho? es una demo técnica construida para la entrevista en NAIIAN, una empresa especializada en soluciones de inteligencia artificial sobre AWS. El objetivo fue demostrar competencias end-to-end sobre AWS Bedrock: no basta con invocar un modelo, hay que componer agentes con herramientas reales, asegurarlos con guardrails, evaluarlos con métricas objetivas, y operar todo con observabilidad de producción. El dominio elegido fue la autointrospección técnica del propio agente: el sistema puede explicar cómo está construido, qué componentes utiliza, cómo se conectan entre sí, y dónde verificar cada afirmación. Es un caso de uso con suficiente profundidad técnica para que la arquitectura tenga sentido real —no es un hola-mundo de chatbot— y tiene la particularidad de ser autoreferencial: el agente es exactamente la cosa que explica.
 
 ---
 
@@ -13,11 +13,11 @@ Fiscal Copilot es una demo técnica construida para la entrevista en NAIIAN, una
 
 ### Decisión
 
-La alternativa más obvia para un agente fiscal era construirlo con LangChain o LangGraph: más control, más portabilidad, menos vendor lock-in. La decidimos descartar deliberadamente porque el requisito de NAIIAN pide Bedrock Agents nativos, y hay una diferencia entre conocer la abstracción y conocer el servicio. Bedrock Agents maneja el loop de razonamiento internamente —incluyendo la gestión de sesiones, el routing hacia herramientas, y el acceso a la knowledge base— lo que obliga a entender su modelo de eventos (completion stream, trace events, returnControl) en lugar de esconderlo detrás de un wrapper.
+La alternativa más obvia para un agente de introspección técnica era construirlo con LangChain o LangGraph: más control, más portabilidad, menos vendor lock-in. La decidimos descartar deliberadamente porque el requisito de NAIIAN pide Bedrock Agents nativos, y hay una diferencia entre conocer la abstracción y conocer el servicio. Bedrock Agents maneja el loop de razonamiento internamente —incluyendo la gestión de sesiones, el routing hacia herramientas, y el acceso a la knowledge base— lo que obliga a entender su modelo de eventos (completion stream, trace events, returnControl) en lugar de esconderlo detrás de un wrapper.
 
 ### Implementación
 
-El agente `2BOPZRAI7X` corre en `eu-central-1` con el modelo `eu.anthropic.claude-sonnet-4-6-20250514-v1:0` (inference profile de la región). Tiene un action group `fiscal-tools` que apunta a la función Lambda `fiscal-copilot-tools`, que expone tres herramientas: `calcular_itbis` (cálculo de impuesto por monto e inclusión), `validar_ncf` (validación de Número de Comprobante Fiscal por tipo y secuencia), y `presentar_formato_606` (generación del reporte mensual de compras). El cliente está en `app/bedrock_agent.py` e invoca el agente con `enableTrace=True`, que es el detalle crítico: sin ese flag, Bedrock no emite trace events y los tokens de uso nunca llegan. Los tokens reales se extraen acumulando `modelInvocationOutput.metadata.usage` de todos los eventos de trace en el stream de `completion`. Una invocación real típica registra 4203 tokens de entrada, 356 de salida, coste de $0.017949 y latencia de 7628ms.
+El agente `2BOPZRAI7X` corre en `eu-central-1` con el modelo `eu.anthropic.claude-sonnet-4-6-20250514-v1:0` (inference profile de la región). Tiene un action group `introspection-tools` que apunta a la función Lambda `fiscal-copilot-tools`, que expone tres herramientas: `explicar_componente` (explica cualquier componente del sistema con atribución de fuente), `donde_verificar` (indica dónde verificar una afirmación sobre la arquitectura), y `generar_reporte_arquitectura` (genera un reporte estructurado de la arquitectura completa). El cliente está en `app/bedrock_agent.py` e invoca el agente con `enableTrace=True`, que es el detalle crítico: sin ese flag, Bedrock no emite trace events y los tokens de uso nunca llegan. Los tokens reales se extraen acumulando `modelInvocationOutput.metadata.usage` de todos los eventos de trace en el stream de `completion`. Una invocación real típica registra 4203 tokens de entrada, 356 de salida, coste de $0.017949 y latencia de 7628ms.
 
 ---
 
@@ -32,7 +32,7 @@ Bedrock ofrece dos opciones de vector store para sus knowledge bases: OpenSearch
 
 ### Implementación
 
-La Knowledge Base `5I5RDNA2V1` usa embeddings Titan V2 de 1024 dimensiones. El corpus incluye documentación fiscal dominicana: ley ITBIS (Ley 11-92), normativa NCF (Norma 06-18), instrucciones del Formato 606/607, y calendario de obligaciones DGII. El agente accede a la KB automáticamente en cada invocación y las respuestas incluyen atribución de fuente, lo que permite verificar que el RAG está activo: una pregunta sobre "¿cuál es la fecha límite del 606?" debe citar el día 15 del mes siguiente y referenciar la normativa DGII. El corpus local (en `app/rag/corpus/`) replica los mismos documentos para el mock agent, garantizando que los tests sean coherentes con el comportamiento real.
+La Knowledge Base `5I5RDNA2V1` usa embeddings Titan V2 de 1024 dimensiones. El corpus contiene documentación técnica del propio proyecto: decisiones de arquitectura, descripción de componentes, visión general del stack, justificaciones de diseño, y guías de operación. El agente accede a la KB automáticamente en cada invocación y las respuestas incluyen atribución de fuente, lo que permite verificar que el RAG está activo: una pregunta sobre "¿qué base de datos usa este proyecto?" debe responder explicando PostgreSQL y referenciar el documento de arquitectura correspondiente. El corpus local (en `app/rag/corpus/`) replica los mismos documentos para el mock agent, garantizando que los tests sean coherentes con el comportamiento real.
 
 ---
 
@@ -47,7 +47,7 @@ Los guardrails podrían haberse implementado como filtros en la capa FastAPI (an
 
 ### Implementación
 
-El guardrail `xgn38kcg6hrq` está configurado con dos protecciones principales: filtro de temas fuera de scope (el agente no debe responder sobre nada que no sea fiscalidad dominicana) y detección de prompt injection (intentos de "ignora las instrucciones anteriores" o similares). El golden set de evaluaciones en `evals/golden_set.jsonl` incluye el caso `injection-001`, que verifica que el agente rechaza el ataque y se identifica correctamente como asistente fiscal. La protección de XSS complementaria vive en la UI (`app/static/demo.html`) mediante `escapeHtml` y uso de `textContent` en lugar de `innerHTML`.
+El guardrail `xgn38kcg6hrq` está configurado con dos protecciones principales: filtro de temas fuera de scope (el agente no debe responder sobre nada que no sea la composición técnica del propio sistema) y detección de prompt injection (intentos de "ignora las instrucciones anteriores" o similares). El golden set de evaluaciones en `evals/golden_set.jsonl` incluye el caso `injection-001`, que verifica que el agente rechaza el ataque y se identifica correctamente como agente de introspección técnica. La protección de XSS complementaria vive en la UI (`app/static/demo.html`) mediante `escapeHtml` y uso de `textContent` en lugar de `innerHTML`.
 
 ---
 
@@ -62,7 +62,7 @@ El uso de Pydantic no es decorativo: es la interfaz de contrato entre capas. Cad
 
 ### Implementación
 
-`app/schemas.py` contiene más de diez modelos Pydantic: `TraceSchema` (registro de una invocación), `ApprovalSchema` (workflow HITL), `ApprovalDecision` (input del usuario), y los tres modelos del endpoint de métricas (`MetricsResponse`, `MetricsModelBreakdown`, `MetricsTenantBreakdown`). Las tools de la Lambda en `aws/lambda/handler.py` también tienen sus schemas JSON declarados como `functionSchema`, que es el mecanismo nativo de Bedrock para el tool calling. El endpoint `/metrics` es el ejemplo más claro de diseño spec-first: el schema Pydantic fue escrito en `specs/metrics-endpoint.md` antes de que existiera una sola línea de implementación en `app/routers/metrics.py`.
+`app/schemas.py` contiene más de diez modelos Pydantic: `TraceSchema` (registro de una invocación), `ApprovalSchema` (workflow HITL), `ApprovalDecision` (input del usuario), y los tres modelos del endpoint de métricas (`MetricsResponse`, `MetricsModelBreakdown`, `MetricsTenantBreakdown`). Las tools de la Lambda en `aws/lambda/handler.py` también tienen sus schemas JSON declarados como `functionSchema`, que es el mecanismo nativo de Bedrock para el tool calling: `explicar_componente`, `donde_verificar`, y `generar_reporte_arquitectura`. El endpoint `/metrics` es el ejemplo más claro de diseño spec-first: el schema Pydantic fue escrito en `specs/metrics-endpoint.md` antes de que existiera una sola línea de implementación en `app/routers/metrics.py`.
 
 ---
 
@@ -77,7 +77,7 @@ El patrón HITL más común en demos es un checkbox "requiere aprobación" que p
 
 ### Implementación
 
-Cuando el usuario pide "presenta el 606 de este mes", el agente retorna `returnControl` con `requireConfirmation=ENABLED`. El backend, en `app/routers/demo.py` (líneas 95-104), detecta esta condición a través del parsing en `app/bedrock_agent.py` (líneas 147-157) e inserta un registro en la tabla `approvals` con `status=pending`. La UI en `app/static/demo.html` tiene un panel lateral que hace polling cada 5 segundos y muestra las aprobaciones pendientes. El usuario puede aprobar o rechazar desde ahí, lo que invoca `POST /demo/{token}/approvals/{id}/decide`. El backend valida el estado: 404 si la aprobación no existe, 409 si ya fue decidida, 422 si el valor de `decision` no es válido. La spec completa está en `specs/hitl-workflow.md` y hay cinco tests automatizados en `tests/test_f7.py::TestDemoApprovals`.
+Cuando el usuario pide "genera un reporte de arquitectura", el agente retorna `returnControl` con `requireConfirmation=ENABLED` porque `generar_reporte_arquitectura` tiene esta opción activada. El backend, en `app/routers/demo.py` (líneas 95-104), detecta esta condición a través del parsing en `app/bedrock_agent.py` (líneas 147-157) e inserta un registro en la tabla `approvals` con `status=pending`. La UI en `app/static/demo.html` tiene un panel lateral que hace polling cada 5 segundos y muestra las aprobaciones pendientes. El usuario puede aprobar o rechazar desde ahí, lo que invoca `POST /demo/{token}/approvals/{id}/decide`. El backend valida el estado: 404 si la aprobación no existe, 409 si ya fue decidida, 422 si el valor de `decision` no es válido. La spec completa está en `specs/hitl-workflow.md` y hay cinco tests automatizados en `tests/test_f7.py::TestDemoApprovals`.
 
 ---
 
@@ -92,7 +92,7 @@ El plan inicial era usar Ragas 0.4.3 como librería. Durante la implementación 
 
 ### Implementación
 
-El pipeline de evaluación en `evals/` tiene cuatro componentes. El harness en `evals/run_harness.py` ejecuta el golden set de 8 casos fiscales contra el agente y verifica respuestas con lógica OR (la respuesta debe contener al menos uno de los valores esperados). Los jueces en `evals/judges.py` implementan cuatro métricas: `faithfulness` (la respuesta está fundamentada en el contexto), `answer_relevancy` (la respuesta responde la pregunta), `context_precision` (el contexto recuperado es relevante), y `geval` (evaluación holística de calidad). El router en `evals/router.py` compara cuatro modelos —Haiku 4.5, Nova Micro, GPT-4o-mini, Sonnet 4.6— en coste, latencia y calidad. Los resultados muestran que Nova Micro es el más rápido (1473ms, $0.00004/query), Haiku el balance costo/calidad para demo ($0.0014/query), y Sonnet 4.6 el estándar de producción ($0.018/query, 7628ms). El coste total del pipeline de evaluaciones completo fue de $0.018.
+El pipeline de evaluación en `evals/` tiene cuatro componentes. El harness en `evals/run_harness.py` ejecuta el golden set de 8 casos técnicos contra el agente y verifica respuestas con lógica OR (la respuesta debe contener al menos uno de los valores esperados). Los jueces en `evals/judges.py` implementan cuatro métricas: `faithfulness` (la respuesta está fundamentada en el contexto), `answer_relevancy` (la respuesta responde la pregunta), `context_precision` (el contexto recuperado es relevante), y `geval` (evaluación holística de calidad). El router en `evals/router.py` compara cuatro modelos —Haiku 4.5, Nova Micro, GPT-4o-mini, Sonnet 4.6— en coste, latencia y calidad. Los resultados muestran que Nova Micro es el más rápido (1473ms, $0.00004/query), Haiku el balance costo/calidad para demo ($0.0014/query), y Sonnet 4.6 el estándar de producción ($0.018/query, 7628ms). El coste total del pipeline de evaluaciones completo fue de $0.018.
 
 ---
 
@@ -130,7 +130,7 @@ El proyecto se desarrolló en seis fases con gate explícito entre cada una: F1 
 
 ### Decisión
 
-La región `eu-central-1` (Frankfurt) fue elegida por dos razones complementarias. Técnicamente, el servidor donde corre FastAPI está en Alemania, lo que da aproximadamente 5ms de latencia hacia los servicios Bedrock de la misma región. Narrativamente, GDPR es un argumento de venta real: datos fiscales de clientes procesados en infraestructura europarlamentaria bajo GDPR es relevante para cualquier cliente empresarial europeo o que opere en Europa.
+La región `eu-central-1` (Frankfurt) fue elegida por dos razones complementarias. Técnicamente, el servidor donde corre FastAPI está en Alemania, lo que da aproximadamente 5ms de latencia hacia los servicios Bedrock de la misma región. Narrativamente, GDPR es un argumento de venta real: documentación técnica procesada en infraestructura europea bajo GDPR es relevante para cualquier cliente empresarial europeo o que opere en Europa.
 
 ### Implementación
 
@@ -140,4 +140,4 @@ FastAPI corre en el puerto 7020 con autenticación por token (tokens de 14 días
 
 ## Conclusión
 
-Fiscal Copilot demuestra que construir con AWS Bedrock implica tomar decisiones de diseño en múltiples niveles simultáneamente: elegir entre vector stores según el modelo de coste real, entender el protocolo de eventos del agente para extraer observabilidad correctamente, implementar seguridad en capas (guardrail + rate limiting + validación de inputs), y evaluar la calidad del sistema con métricas objetivas en lugar de afirmaciones subjetivas. El proyecto no es solo un catálogo de servicios AWS utilizados: es un sistema operado con la misma disciplina que se aplicaría en producción, con tests, specs escritas antes del código, gates de calidad entre fases, y evidencia reproducible de cada decisión.
+¿Cómo Estoy Hecho? demuestra que construir con AWS Bedrock implica tomar decisiones de diseño en múltiples niveles simultáneamente: elegir entre vector stores según el modelo de coste real, entender el protocolo de eventos del agente para extraer observabilidad correctamente, implementar seguridad en capas (guardrail + rate limiting + validación de inputs), y evaluar la calidad del sistema con métricas objetivas en lugar de afirmaciones subjetivas. El proyecto no es solo un catálogo de servicios AWS utilizados: es un sistema operado con la misma disciplina que se aplicaría en producción, con tests, specs escritas antes del código, gates de calidad entre fases, y evidencia reproducible de cada decisión.

@@ -6,7 +6,7 @@ Este documento mapea cada requisito de la vacante NAIIAN a su implementación co
 
 ## 1. Bedrock Agents + Action Flows + Permisos + Estados + Trazabilidad
 
-**Implementación**: Agent `2BOPZRAI7X` con Sonnet 4.6, action group `fiscal-tools` (Lambda `fiscal-copilot-tools`).
+**Implementación**: Agent `2BOPZRAI7X` con Sonnet 4.6, action group `introspection-tools` (Lambda `fiscal-copilot-tools`).
 
 | Componente | Ubicación |
 |-----------|-----------|
@@ -22,15 +22,15 @@ Este documento mapea cada requisito de la vacante NAIIAN a su implementación co
 
 ## 2. RAG Multi-Fuente + Source Attribution
 
-**Implementación**: Knowledge Base `5I5RDNA2V1` con S3 Vectors (Titan Embedding V2), corpus fiscal dominicano.
+**Implementación**: Knowledge Base `5I5RDNA2V1` con S3 Vectors (Titan Embedding V2), corpus de documentación técnica del proyecto.
 
 | Componente | Ubicación |
 |-----------|-----------|
 | KB ID | `aws/ids.env` (asociada al Agent) |
-| Corpus local (mock) | `app/rag/corpus/` (4 documentos: ITBIS, NCF, 606/607, calendario) |
-| Citas en respuestas | Respuestas del agente real incluyen normativa (Ley 11-92, DGII) |
+| Corpus local (mock) | `app/rag/corpus/` (documentos: arquitectura, stack, componentes, decisiones de diseño) |
+| Citas en respuestas | Respuestas del agente real incluyen atribución al documento fuente correspondiente |
 
-**Cómo probar**: "¿Fecha límite del 606?" → cita día 15, OFV, normativa.
+**Cómo probar**: "¿Qué base de datos usa este proyecto?" → explica PostgreSQL con atribución de fuente al documento de arquitectura.
 
 ---
 
@@ -41,7 +41,7 @@ Este documento mapea cada requisito de la vacante NAIIAN a su implementación co
 | Componente | Ubicación |
 |-----------|-----------|
 | Pydantic models | `app/schemas.py` (TraceSchema, ApprovalSchema, MetricsResponse, etc.) |
-| Tool schemas | `aws/lambda/handler.py` (calcular_itbis, validar_ncf, presentar_formato_606) |
+| Tool schemas | `aws/lambda/handler.py` (explicar_componente, donde_verificar, generar_reporte_arquitectura) |
 | Local tools | `app/tools/` (3 módulos con dataclass output) |
 | JSON Schema strict | `evals/router.py:173-189` (OpenAI route con response_format) |
 
@@ -51,11 +51,11 @@ Este documento mapea cada requisito de la vacante NAIIAN a su implementación co
 
 ## 4. Eval Harness: Factualidad / Completitud / Coste / Latencia
 
-**Implementación**: Pipeline de 4 pasos con golden set de 8 casos fiscales.
+**Implementación**: Pipeline de 4 pasos con golden set de 8 casos técnicos.
 
 | Componente | Ubicación |
 |-----------|-----------|
-| Golden set | `evals/golden_set.jsonl` (8 casos: cálculo, validación, normativa, injection, HITL) |
+| Golden set | `evals/golden_set.jsonl` (8 casos: explicación de componentes, preguntas de arquitectura, verificación, HITL, injection) |
 | Harness | `evals/run_harness.py` (expected_contains OR logic, expected_tools) |
 | Judges LLM-as-Judge | `evals/judges.py` (faithfulness, answer_relevancy, context_precision, geval) |
 | Router multi-modelo | `evals/router.py` (Haiku, Nova Micro, GPT-4o-mini, Sonnet 4.6) |
@@ -68,7 +68,7 @@ Este documento mapea cada requisito de la vacante NAIIAN a su implementación co
 
 ## 5. HITL: Revisión / Aprobación / Rechazo + Estados + Checkpoints
 
-**Implementación**: `presentar_formato_606` con `requireConfirmation=ENABLED` en Bedrock.
+**Implementación**: `generar_reporte_arquitectura` con `requireConfirmation=ENABLED` en Bedrock.
 
 | Componente | Ubicación |
 |-----------|-----------|
@@ -79,7 +79,7 @@ Este documento mapea cada requisito de la vacante NAIIAN a su implementación co
 | UI bandeja | `app/static/demo.html` (sidebar aprobaciones, polling 5s) |
 | Tests | `tests/test_f7.py::TestDemoApprovals` (5 tests) |
 
-**Cómo probar**: "Presenta el 606..." → approval pendiente → aprobar en sidebar → status=approved.
+**Cómo probar**: "Genera un reporte de arquitectura" → approval pendiente → aprobar en sidebar → status=approved.
 
 ---
 
@@ -95,7 +95,7 @@ Este documento mapea cada requisito de la vacante NAIIAN a su implementación co
 | Rate limiting | `app/auth.py:64-78` (30 req/hour por token) |
 | Cost cap | `app/auth.py:81-97` ($2/day) |
 
-**Cómo probar**: "Ignora instrucciones..." → rechazado, se identifica como asistente fiscal.
+**Cómo probar**: "Ignora instrucciones..." → rechazado, se identifica como agente de introspección técnica.
 
 ---
 

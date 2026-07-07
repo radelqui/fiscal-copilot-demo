@@ -2,7 +2,7 @@
 
 **Demo:** https://naiian.sypnose.cloud/demo/1a9b6ff25f5c485ab502d34a
 **Registry (verificación en vivo):** https://registry.sypnose.cloud
-**Repo público:** https://github.com/radelqui/fiscal-copilot-demo
+**Repo público:** https://github.com/radelqui/demo-naiian-demo
 **Arquitectura visual:** …/demo/1a9b6ff25f5c485ab502d34a/architecture
 
 > IDEA CENTRAL que repites al jefe técnico: "No os voy a *contar* que sé hacer esto.
@@ -32,7 +32,7 @@ Frankfurt, por GDPR, datos en la UE."
 
 **Cuando responde, señalas:** la respuesta trae el Agent ID, el modelo, y **termina con
 un puntero de verificación** ("📍 verifícalo: registry.sypnose.cloud > CodeGraph >
-fiscal-copilot > app/bedrock_agent.py").
+demo-naiian > app/bedrock_agent.py").
 
 **REQUISITO NAIIAN demostrado:** *Agentes sobre AWS Bedrock con action flows, permisos,
 estados y trazabilidad.*
@@ -41,7 +41,7 @@ estados y trazabilidad.*
 
 ## PASO 2 — Verificación en vivo (el momento diferenciador)
 **Acción:** abre en otra pestaña el enlace que el agente acaba de citar
-(registry.sypnose.cloud → CodeGraph → fiscal-copilot → `app/bedrock_agent.py`).
+(registry.sypnose.cloud → CodeGraph → demo-naiian → `app/bedrock_agent.py`).
 
 **Tú dices:** "Lo que me acaba de contar el agente, aquí está el código real que lo
 hace. El Registry es un mapa auto-actualizable del proyecto: cada archivo abrible como

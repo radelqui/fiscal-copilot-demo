@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 
 VERIFICACION = {
-    "bedrock_agent": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/bedrock_agent.py", "architecture": "/architecture (nodo AGENT)"},
-    "rag": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/bedrock_agent.py (retrieve)", "architecture": "/architecture (nodo KB)"},
-    "action_groups": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > aws/lambda/handler.py", "architecture": "/architecture (nodo LAMBDA)"},
-    "hitl": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/routers/demo.py", "architecture": "/architecture (nodo HITL)"},
-    "guardrails": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > (configuracion AWS)", "architecture": "/architecture (nodo GUARDRAIL)"},
-    "evals": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > evals/", "architecture": "N/A"},
-    "observabilidad": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/routers/traces.py", "architecture": "/architecture (nodo PostgreSQL)"},
-    "backend": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > fiscal-copilot > app/main.py", "architecture": "/architecture (nodo FastAPI)"},
+    "bedrock_agent": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > demo-naiian > app/bedrock_agent.py", "architecture": "/architecture (nodo AGENT)"},
+    "rag": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > demo-naiian > app/bedrock_agent.py (retrieve)", "architecture": "/architecture (nodo KB)"},
+    "action_groups": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > demo-naiian > aws/lambda/handler.py", "architecture": "/architecture (nodo LAMBDA)"},
+    "hitl": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > demo-naiian > app/routers/demo.py", "architecture": "/architecture (nodo HITL)"},
+    "guardrails": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > demo-naiian > (configuracion AWS)", "architecture": "/architecture (nodo GUARDRAIL)"},
+    "evals": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > demo-naiian > evals/", "architecture": "N/A"},
+    "observabilidad": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > demo-naiian > app/routers/traces.py", "architecture": "/architecture (nodo PostgreSQL)"},
+    "backend": {"url": "https://registry.sypnose.cloud", "path": "CodeGraph > demo-naiian > app/main.py", "architecture": "/architecture (nodo FastAPI)"},
 }
 
 @dataclass
