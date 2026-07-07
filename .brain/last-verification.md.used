@@ -1,5 +1,5 @@
-## Verificacion post-auditoria SM — 2026-07-06
+## Verificacion Registry NAIIAN — 2026-07-07
 
-what_changed: "enableTrace=True en invoke_agent, limpieza BD sintetica"
-how_verified: "POST real a /demo/1a9b6ff25f5c485ab502d34a/ask con agente Bedrock real"
-result: "tokens_in=4203, tokens_out=356, cost_usd=0.017949, tools=[calcular_itbis], latency=7627ms"
+what_changed: "catalog-info.yaml, docs/REGISTRY-NAIIAN.md, trace-mcp index, codegraph"
+how_verified: "curl registry API endpoints para confirmar entity visible"
+result: "fiscal-copilot en registry: type=api, domain=fiscal, framework=FastAPI, 9 rutas codegraph, 57 files indexados, 788 symbols"
