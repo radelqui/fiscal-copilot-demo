@@ -864,7 +864,7 @@
         <button class="btn-dashboard" onclick="verificarAWS()" id="btn-verify-aws">
             🔎 Verificar en AWS
         </button>
-        <a class="btn-dashboard" href="architecture" rel="noopener">
+        <a class="btn-dashboard" id="arch-link" rel="noopener">
             ◈ Arquitectura
         </a>
         <a class="btn-dashboard" href="/dashboard" target="_blank" rel="noopener">
@@ -946,6 +946,11 @@
 // ── GLOBALS (injected by server or fallback for local dev) ──
 const TOKEN = (typeof DEMO_TOKEN !== 'undefined') ? DEMO_TOKEN : 'demo-dev-token';
 const BASE  = (typeof API_BASE  !== 'undefined') ? API_BASE  : '/demo/' + TOKEN;
+
+// Fix relative-href bug: from /demo/TOKEN (no trailing slash) the browser
+// resolves a bare href="architecture" as /demo/architecture (no token) → 401.
+// Build the link with the token explicitly instead.
+document.getElementById('arch-link').href = BASE + '/architecture';
 
 // ── STATE ──
 let isSending = false;

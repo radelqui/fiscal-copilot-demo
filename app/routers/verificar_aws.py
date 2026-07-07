@@ -11,6 +11,21 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/demo", tags=["verificar-aws"])
 
 
+def _clean_name(value):
+    """Presentation-layer sanitizer. AWS resources keep their real names
+    (fiscal-copilot / fiscal_copilot) in AWS itself, so live boto3 calls
+    keep working unchanged — we only rewrite the string shown to the
+    frontend, never the ids/identifiers used to call AWS."""
+    if not isinstance(value, str):
+        return value
+    return (
+        value.replace("fiscal-copilot", "demo-naiian")
+        .replace("fiscal_copilot", "demo_naiian")
+        .replace("FISCAL-COPILOT", "DEMO-NAIIAN")
+        .replace("FISCAL_COPILOT", "DEMO_NAIIAN")
+    )
+
+
 @router.get("/{token}/verificar-aws")
 async def verificar_aws(token: str):
     """Read AWS resource states in real-time via boto3."""
@@ -26,7 +41,7 @@ async def verificar_aws(token: str):
         client = boto3.client("bedrock-agent", region_name="eu-central-1")
         agent = client.get_agent(agentId="2BOPZRAI7X")["agent"]
         results["agent"] = {
-            "name": agent.get("agentName", "unknown"),
+            "name": _clean_name(agent.get("agentName", "unknown")),
             "status": agent.get("agentStatus", "unknown"),
             "foundation_model": agent.get("foundationModel", "unknown"),
             "updated_at": str(agent.get("updatedAt", "")),
@@ -41,7 +56,7 @@ async def verificar_aws(token: str):
         client = boto3.client("bedrock-agent", region_name="eu-central-1")
         kb = client.get_knowledge_base(knowledgeBaseId="5I5RDNA2V1")["knowledgeBase"]
         results["knowledge_base"] = {
-            "name": kb.get("name", "unknown"),
+            "name": _clean_name(kb.get("name", "unknown")),
             "status": kb.get("status", "unknown"),
             "ok": kb.get("status") == "ACTIVE",
         }
@@ -54,7 +69,7 @@ async def verificar_aws(token: str):
         client = boto3.client("bedrock", region_name="eu-central-1")
         g = client.get_guardrail(guardrailIdentifier="xgn38kcg6hrq")
         results["guardrail"] = {
-            "name": g.get("name", "unknown"),
+            "name": _clean_name(g.get("name", "unknown")),
             "status": g.get("status", "unknown"),
             "version": g.get("version", "unknown"),
             "ok": g.get("status") == "READY",
@@ -69,7 +84,7 @@ async def verificar_aws(token: str):
         fn = client.get_function(FunctionName="fiscal-copilot-tools")
         config = fn.get("Configuration", {})
         results["lambda"] = {
-            "function_name": config.get("FunctionName", "unknown"),
+            "function_name": _clean_name(config.get("FunctionName", "unknown")),
             "runtime": config.get("Runtime", "unknown"),
             "state": config.get("State", "unknown"),
             "last_modified": config.get("LastModified", "unknown"),
