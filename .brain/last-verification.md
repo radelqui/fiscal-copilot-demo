@@ -1,48 +1,38 @@
-## Verificacion: ORDEN-REGISTRY-POLISH (P1 + P2 + P4)
+## Verificacion: ORDEN-NOTEBOOK-FLUJO N1 — Open Notebook Local
 
 **Fecha**: 2026-07-07
-**Orden**: ORDEN-REGISTRY-POLISH — Time-slider web + Export digest + Server-sync bundle
 
-### P1 — Time-Slider Web
+### Evidencia docker ps
+```
+NAMES                           STATUS                 PORTS
+open-notebook-open_notebook-1   Up About a minute      0.0.0.0:5055->5055/tcp, 0.0.0.0:8502->8502/tcp
+open-notebook-surrealdb-1       Up About a minute      0.0.0.0:8000->8000/tcp
+```
 
-1. **snapshot-history.py** ejecutado: 19 scans, 204388 change_events, 19 projects
-2. **API endpoints verificados**:
+### Evidencia curl :8502
 ```
-GET /history/scans/fiscal-copilot → { count: 1, scans: [{scan_id:11, ts:"2026-07-07T01:42:18Z", node_count:821, edge_count:1145}] }
-GET /history/snapshot/11 → Nodes: 821, Edges: 1145
-GET /history/changes/11 → Changes: 1966
+HTTP 200 (Streamlit UI, 1522 bytes)
 ```
-3. **UI time-slider** integrado en index.html (CSS lines 751-813, HTML line 974, JS lines 2087-2182)
-4. **registry-build.sh** FASE 4.5 run_snapshots integrada (line 307, 388)
 
-### P2 — Export Digest Web
+### Evidencia curl :5055
+```
+GET /health → {"status":"healthy"}
+GET /api/notebooks → [{id: "notebook:mb786ov6775hht3we70l", name: "Fiscal Copilot — Meta-Demo"}]
+```
 
-1. **Endpoint verificado**:
-```
-GET /multi/digest/fiscal-copilot → 128 lines Markdown
-Content: Overview, Code Structure, API Routes, File Tree
-Content-Disposition: attachment; filename="fiscal-copilot-digest.md"
-```
-2. **Download button** en index.html line 1233 (buildCGDetail)
-3. **downloadDigest()** function en index.html line 2000
+### Notebook creado
+- ID: notebook:mb786ov6775hht3we70l
+- Nombre: Fiscal Copilot — Meta-Demo
+- Sources: 25 documentos (docs/ + meta-corpus/ + README.md), 0 failed
+- Total: ~145,000 chars de contenido
 
-### P4 — Server-Sync Bundle
-
-1. **Bundle creado**: /tmp/registry-server-sync.bundle (3.5MB)
-2. **Branch**: server-sync en ~/repos/registry-v22/ (3 commits):
-```
-5190faf feat: history snapshots — snapshot-history.py, seed-history.py, FASE 4.5 in build
-86c110f feat: web UI — file viewer modal, download digest button, time-slider
-a5b92cf feat: server routes — codegraph null-safety, file-content endpoint, history route
-```
-3. **No push a GitHub** (verificado)
-
-### Registry API health
-```
-GET /health → {"status":"ok","services":3,"registry":true,"fleet":false}
-```
+### Infraestructura
+- docker-compose.yml: /home/sypnose/open-notebook/docker-compose.yml
+- Volumes: surreal_data/ + notebook_data/
+- Systemd: open-notebook.service (enabled, auto-start)
+- SurrealDB creds: root/opennotebook
 
 ### Resultado
-what_changed: "P1 time-slider (scripts + API + UI), P2 digest endpoint + button, P4 server-sync bundle 3.5MB"
-how_verified: "curl a 5 endpoints con output real + ls bundle + git log server-sync + grep UI components"
-result: "19 projects en history.db, 3 API endpoints OK, UI slider + digest button integrados, bundle listo en /tmp"
+what_changed: "Open Notebook instalado con Docker, notebook fiscal-copilot con 25 docs, systemd habilitado"
+how_verified: "docker ps muestra ambos containers Up, curl :8502 HTTP 200, curl :5055/health healthy, API devuelve notebook con 25 sources"
+result: "Open Notebook operativo en :8502 (UI) + :5055 (API), notebook fiscal-copilot listo con 25 fuentes"
