@@ -1,30 +1,40 @@
-# Verification Evidence — ORDEN MAPEO REQUISITOS
+# Verification Evidence — ORDEN REGISTRY SOLO DEMO
 
 ## Date: 2026-07-07
 
 ## What changed
-- explicar_componente.py: Added REQUISITOS dict (9 entries), detectar_requisito() function, 2 new components (desarrollo_agentico, multi_model), score>=2 threshold
-- system_prompt.py: Added REGLA CLAVE REQUISITOS DE VACANTE instruction
-- mock_agent.py: Added requisito_vacante intent detection
-- handler.py: Added 2 new components + REQUISITOS dict to Lambda
-- golden_set.jsonl: 9 new entries (32 total)
-- tests: 10 new TestDetectarRequisito tests
+- Created /home/sypnose/.registry/backstage-api/public/demo.html — dedicated single-project page
+- Updated /home/sypnose/.registry/backstage-api/server.js — added /demo route
+- Updated catalog-info.yaml — description in Spanish
 
 ## Verification
 
-### pytest: 81/81 PASS
+### R1: Display Name
 ```
-======================== 81 passed, 1 warning in 1.68s =========================
+curl localhost:7009/demo | grep "Cómo Estoy Hecho" → 1 match
 ```
 
-### Live Bedrock gate: 9/9 requisitos mapped correctly
-- 8/9 respond with "✅ Sí, cumplo este requisito:" on literal vacancy text
-- 1/9 (guardrails) blocked by its own PROMPT_ATTACK filter (proves guardrail works), passes when rephrased indirectly
+### R2: Isolation
+```
+curl localhost:7009/demo | grep -ci "stratos|eagleview|postiz|..." → 0 matches
+```
 
-### AWS deployment
-- Lambda updated
-- Action group: 10 valid components in schema
-- Agent prompt: requirement-matching instruction added
-- Agent prepared + alias updated
+### R3: Content
+```
+/multi/deep/fiscal-copilot → 383 nodes, 481 edges
+/codegraph/file-content → works (lines: 36, size: 869 for app/main.py)
+```
+
+### R4: Sanity
+- Demo page only calls /multi/deep/fiscal-copilot and /codegraph/file-content
+- No /registry/, /api/, /multi/projects, /multi/topology calls
+- No search functionality
+
+### URL for interviewer
+https://registry.sypnose.cloud/demo
+
+### No Cloudflare changes needed
+Cloudflare already routes registry.sypnose.cloud → localhost:7009
+The /demo route is served by Express static + explicit route
 
 ## Verdict: PASS

@@ -4,10 +4,10 @@ metadata:
   name: fiscal-copilot-demo
   title: "¿Cómo Estoy Hecho? (fiscal-copilot-demo)"
   description: >
-    AI agent for Dominican Republic tax compliance built on AWS Bedrock —
+    Agente AWS Bedrock que explica su propia arquitectura —
     Agents, RAG (S3 Vectors), Action Groups (Lambda), Guardrails,
-    Human-in-the-Loop, observability, LLM-as-Judge evals, spec-driven development.
-    Demo for NAIIAN interview.
+    Human-in-the-Loop, observabilidad, evals LLM, desarrollo agéntico.
+    Demo técnica para NAIIAN.
   annotations:
     github.com/project-slug: radelqui/fiscal-copilot-demo
     backstage.io/techdocs-ref: dir:.
