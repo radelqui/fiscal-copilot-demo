@@ -1,54 +1,40 @@
-## Verificacion: ORDEN-REBRAND — "Fiscal Copilot" → "¿Cómo Estoy Hecho?"
+# Verification Evidence — ORDEN REGISTRY SOLO DEMO
 
-**Fecha**: 2026-07-07
+## Date: 2026-07-07
 
-### pytest
+## What changed
+- Created /home/sypnose/.registry/backstage-api/public/demo.html — dedicated single-project page
+- Updated /home/sypnose/.registry/backstage-api/server.js — added /demo route
+- Updated catalog-info.yaml — description in Spanish
+
+## Verification
+
+### R1: Display Name
 ```
-84 passed, 1 warning in 1.44s
-```
-
-### Archivos modificados (cara visible)
-| Archivo | Cambios |
-|---------|---------|
-| app/static/demo.html | title, logo, header, welcome, placeholder, chips (8 edits) |
-| app/static/architecture.html | title, header (2 edits) |
-| app/routers/dashboard.py | title, h1 (2 edits) |
-| app/main.py | FastAPI title (1 edit) |
-| app/mock_agent.py | self-introduction string (1 edit) |
-| app/agent/system_prompt.py | identity declaration (1 edit) |
-| app/seed.py | module docstring (1 edit) |
-| README.md | title, intro paragraph (2 edits) |
-| docs/DEMO-GUIDE.md | title, URL fix fiscal-copilot.sypnose.cloud → naiian.sypnose.cloud/demo/... (2 edits) |
-| docs/COMO-SE-HIZO.md | title (1 edit) |
-| docs/VERIFICACION-REGISTRY.md | intro text (1 edit) |
-| catalog-info.yaml | added title field (1 edit) |
-| tests/test_f7.py | 2 assertions updated |
-| tests/test_f3.py | 1 assertion updated |
-
-### Agent prompt (AWS)
-```
-Agent updated: fiscal-copilot
-Status: UPDATING → PREPARED
-Instruction: 2626 chars, starts with 'Eres "¿Cómo Estoy Hecho?"'
-Alias updated: UPDATING
+curl localhost:7009/demo | grep "Cómo Estoy Hecho" → 1 match
 ```
 
-### Gate real — agent responds with architecture details
+### R2: Isolation
 ```
-¿Cómo está construido este agente de Bedrock?
-→ Agent ID 2BOPZRAI7X, Claude Sonnet 4.6, KB 5I5RDNA2V1, S3 Vectors, Guardrail xgn38kcg6hrq
+curl localhost:7009/demo | grep -ci "stratos|eagleview|postiz|..." → 0 matches
 ```
 
-### §11 — Extras encontrados y corregidos (no en la orden)
-- app/routers/dashboard.py (title + h1)
-- app/main.py (FastAPI app title)
-- app/mock_agent.py (self-introduction)
-- app/agent/system_prompt.py (local system prompt)
-- app/seed.py (docstring)
-- docs/COMO-SE-HIZO.md (title)
-- docs/VERIFICACION-REGISTRY.md (intro text)
+### R3: Content
+```
+/multi/deep/fiscal-copilot → 383 nodes, 481 edges
+/codegraph/file-content → works (lines: 36, size: 869 for app/main.py)
+```
 
-### Resultado
-what_changed: "14 archivos editados, rebrand completo de cara visible + system prompt AWS"
-how_verified: "pytest 84 pass + grep confirma 0 'Fiscal Copilot' en UI/tests, 12 'Cómo Estoy Hecho' en 7 archivos"
-result: "Rebrand completo, tests verdes, agent prompt actualizado"
+### R4: Sanity
+- Demo page only calls /multi/deep/fiscal-copilot and /codegraph/file-content
+- No /registry/, /api/, /multi/projects, /multi/topology calls
+- No search functionality
+
+### URL for interviewer
+https://registry.sypnose.cloud/demo
+
+### No Cloudflare changes needed
+Cloudflare already routes registry.sypnose.cloud → localhost:7009
+The /demo route is served by Express static + explicit route
+
+## Verdict: PASS
