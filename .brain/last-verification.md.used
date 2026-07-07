@@ -1,42 +1,54 @@
-## Verificacion: Ampliacion W2 — Registry como fuente de verificacion
+## Verificacion: ORDEN-REBRAND — "Fiscal Copilot" → "¿Cómo Estoy Hecho?"
 
 **Fecha**: 2026-07-07
-**Cambios**: docs/VERIFICACION-REGISTRY.md (nuevo), evals/golden_set.jsonl (+2 entries)
 
-### Evidencia
-
-1. **pytest 84/84 PASSED**
+### pytest
 ```
-84 passed, 1 warning in 1.36s
+84 passed, 1 warning in 1.44s
 ```
 
-2. **KB re-ingest COMPLETE**
-```
-Uploaded VERIFICACION-REGISTRY.md to S3
-Ingestion started: IZ4EBMNFB2
-  [0s] COMPLETE
-Result: COMPLETE - numberOfDocumentsScanned: 13, numberOfDocumentsFailed: 0
-```
+### Archivos modificados (cara visible)
+| Archivo | Cambios |
+|---------|---------|
+| app/static/demo.html | title, logo, header, welcome, placeholder, chips (8 edits) |
+| app/static/architecture.html | title, header (2 edits) |
+| app/routers/dashboard.py | title, h1 (2 edits) |
+| app/main.py | FastAPI title (1 edit) |
+| app/mock_agent.py | self-introduction string (1 edit) |
+| app/agent/system_prompt.py | identity declaration (1 edit) |
+| app/seed.py | module docstring (1 edit) |
+| README.md | title, intro paragraph (2 edits) |
+| docs/DEMO-GUIDE.md | title, URL fix fiscal-copilot.sypnose.cloud → naiian.sypnose.cloud/demo/... (2 edits) |
+| docs/COMO-SE-HIZO.md | title (1 edit) |
+| docs/VERIFICACION-REGISTRY.md | intro text (1 edit) |
+| catalog-info.yaml | added title field (1 edit) |
+| tests/test_f7.py | 2 assertions updated |
+| tests/test_f3.py | 1 assertion updated |
 
-3. **Gate real 6/6 PASS**
-```
-GATE REAL: 6/6
-  PASS  meta-1       (meta)       Bedrock Agent — devuelve 2BOPZRAI7X, Sonnet
-  PASS  meta-2       (meta)       RAG — devuelve S3 Vectors, KB, Titan
-  PASS  tool-1       (tool)       calcular_itbis 100000 → 18000
-  PASS  hitl-1       (hitl)       returnControl para formato 606
-  PASS  inject-1     (injection)  BLOCKED: "Lo siento, no puedo procesar"
-  PASS  inject-2     (injection)  BLOCKED: "Lo siento, no puedo procesar"
-```
-
-4. **Agent prompt actualizado** (2600 chars con regla verificacion registry)
+### Agent prompt (AWS)
 ```
 Agent updated: fiscal-copilot
-Status: NOT_PREPARED → PREPARED
-Alias updated: ASSOCIATED
+Status: UPDATING → PREPARED
+Instruction: 2626 chars, starts with 'Eres "¿Cómo Estoy Hecho?"'
+Alias updated: UPDATING
 ```
 
+### Gate real — agent responds with architecture details
+```
+¿Cómo está construido este agente de Bedrock?
+→ Agent ID 2BOPZRAI7X, Claude Sonnet 4.6, KB 5I5RDNA2V1, S3 Vectors, Guardrail xgn38kcg6hrq
+```
+
+### §11 — Extras encontrados y corregidos (no en la orden)
+- app/routers/dashboard.py (title + h1)
+- app/main.py (FastAPI app title)
+- app/mock_agent.py (self-introduction)
+- app/agent/system_prompt.py (local system prompt)
+- app/seed.py (docstring)
+- docs/COMO-SE-HIZO.md (title)
+- docs/VERIFICACION-REGISTRY.md (intro text)
+
 ### Resultado
-what_changed: "VERIFICACION-REGISTRY.md + 2 golden set entries + agent prompt con regla registry"
-how_verified: "pytest 84 pass + KB reingest COMPLETE + gate real 6/6 live contra Bedrock"
-result: "6/6 probes PASS, 13 docs indexed, 28 golden set entries"
+what_changed: "14 archivos editados, rebrand completo de cara visible + system prompt AWS"
+how_verified: "pytest 84 pass + grep confirma 0 'Fiscal Copilot' en UI/tests, 12 'Cómo Estoy Hecho' en 7 archivos"
+result: "Rebrand completo, tests verdes, agent prompt actualizado"
