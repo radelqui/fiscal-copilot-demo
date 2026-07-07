@@ -1,39 +1,49 @@
-# Verificación: click tooltips en diagrama Mermaid
+# Verificación: Registry v2.2 Update
 
 ## Fecha: 2026-07-07
-## Commit: d5d9ccb
+## Tarea: ORDEN-REGISTRY-V22
 
 ## Qué cambió
-- 17 `click` statements añadidos al diagrama Mermaid en `app/static/architecture.html`
-- `securityLevel: 'loose'` en `mermaid.initialize()` para habilitar click events
+- scanner.py, classifier.py, registry-build.sh actualizados de v2.2
+- codegraph.js: null-safety + endpoint /codegraph/file-content + ESM fix
+- index.html: file viewer modal con click en archivos del code graph
 
 ## Evidencia
 
-### Tests (84/84 passed)
-```
-84 passed, 1 warning in 1.40s
-```
-
-### Curl /architecture (200 con token válido)
-```
-$ curl -s "http://localhost:7020/demo/1a9b6ff25f5c485ab502d34a/architecture" | head -5
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <title>Fiscal Copilot — Arquitectura</title>
+### Health (200 OK)
+```json
+{"status":"ok","services":3,"registry":true,"fleet":false}
 ```
 
-### 401 sin token
+### File viewer endpoint (200 + contenido)
 ```
-$ curl -s -o /dev/null -w "%{http_code}" "http://localhost:7020/demo/invalid-token/architecture"
-401
+$ curl "http://localhost:7009/codegraph/file-content?path=/home/sypnose/proyectos/fiscal-copilot/app/main.py"
+{"path":"/home/sypnose/proyectos/fiscal-copilot/app/main.py","size":863,"lines":36,"content":"import logging..."}
 ```
 
-### Click statements verificados
+### Seguridad (403 para path traversal)
 ```
-$ grep -c "click " app/static/architecture.html
-17
+$ curl "http://localhost:7009/codegraph/file-content?path=/etc/passwd"
+{"error":"Access denied: path must be under /home/sypnose/"}
+
+$ curl "http://localhost:7009/codegraph/file-content?path=/home/sypnose/../../etc/passwd"
+{"error":"Access denied: path must be under /home/sypnose/"}
+```
+
+### Topology preservada (12 proyectos)
+```
+$ curl http://localhost:7009/multi/topology → Projects: 12
+```
+
+### Codegraph disponible
+```json
+{"available":true,"endpoints":["/routes","/routes-with-tables","/route/:path","/summary","/file-content"]}
+```
+
+### Frontend (file viewer integrado)
+```
+file-viewer-modal: 7 occurrences
+openFileViewer: 2 occurrences
 ```
 
 ## Resultado: PASS
