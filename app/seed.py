@@ -1,4 +1,4 @@
-"""Seed data for Fiscal Copilot demo.
+"""Seed data for ¿Cómo Estoy Hecho? demo.
 
 Run: python -m app.seed
 Creates 3 tenants and 20 facturas with realistic Dominican tax data.

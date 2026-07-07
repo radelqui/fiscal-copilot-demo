@@ -1,6 +1,6 @@
 # Verificación en Vivo — Registry como Fuente de Verdad
 
-Cada componente de Fiscal Copilot puede verificarse en tiempo real a través del
+Cada componente de ¿Cómo Estoy Hecho? puede verificarse en tiempo real a través del
 [Registry público](https://registry.sypnose.cloud).
 
 ## Tabla de Verificación

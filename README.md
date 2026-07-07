@@ -1,6 +1,6 @@
-# Fiscal Copilot — Meta-Demo
+# ¿Cómo Estoy Hecho? — Meta-Demo
 
-**Agente que explica su propia arquitectura.** Demo técnica para la vacante NAIIAN
+**¿Cómo Estoy Hecho?** Un agente de IA que explica su propia arquitectura. Demo técnica para la vacante NAIIAN
 que demuestra AWS Bedrock Agents end-to-end: el agente está especializado en explicar
 cómo se construyó esta misma demo — desde los requisitos de la vacante hasta la
 implementación final. Las tools fiscales (ITBIS, NCF, 606) se mantienen como artefacto

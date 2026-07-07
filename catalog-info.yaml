@@ -2,6 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: fiscal-copilot-demo
+  title: "¿Cómo Estoy Hecho? (fiscal-copilot-demo)"
   description: >
     AI agent for Dominican Republic tax compliance built on AWS Bedrock —
     Agents, RAG (S3 Vectors), Action Groups (Lambda), Guardrails,

@@ -11,7 +11,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>Fiscal Copilot — Dashboard de Costes</title>
+    <title>¿Cómo Estoy Hecho? — Dashboard de Costes</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{ font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; padding: 2rem; }}
@@ -31,7 +31,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <h1>Fiscal Copilot — Dashboard de Costes</h1>
+    <h1>¿Cómo Estoy Hecho? — Dashboard de Costes</h1>
     <p class="subtitle">Observabilidad por tenant, modelo y proveedor</p>
     <div class="grid">
         <div class="card">

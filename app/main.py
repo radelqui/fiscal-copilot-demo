@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Fiscal Copilot",
+    title="¿Cómo Estoy Hecho?",
     description="AI agent for Dominican tax compliance",
     version="0.1.0",
     lifespan=lifespan,

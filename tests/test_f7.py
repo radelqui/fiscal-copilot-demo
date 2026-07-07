@@ -45,7 +45,7 @@ class TestTokenValidation:
         r = db_client.get(f"/demo/{demo_token}")
         assert r.status_code == 200
         assert "text/html" in r.headers["content-type"]
-        assert "Fiscal Copilot" in r.text
+        assert "Cómo Estoy Hecho" in r.text
 
     def test_html_has_injected_token(self, db_client, demo_token):
         r = db_client.get(f"/demo/{demo_token}")
@@ -284,7 +284,7 @@ class TestArchitecture:
     def test_architecture_valid_token(self, db_client, demo_token):
         r = db_client.get(f"/demo/{demo_token}/architecture")
         assert r.status_code == 200
-        assert "Fiscal Copilot" in r.text
+        assert "Cómo Estoy Hecho" in r.text
         assert "mermaid" in r.text.lower() or "Arquitectura" in r.text
 
     def test_architecture_invalid_token(self, db_client):

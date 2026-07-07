@@ -201,7 +201,7 @@ def _kb_response(query: str) -> str:
             "Se declaran con el IR-17 antes del día 10 del mes siguiente."
         )
     return (
-        "Soy Fiscal Copilot, tu asistente de cumplimiento fiscal dominicano. "
+        "Soy ¿Cómo Estoy Hecho?, un agente que explica su propia arquitectura. "
         "Puedo ayudarte con cálculos de ITBIS, validación de NCF, preparación "
         "de formatos 606/607, y consultas sobre el calendario fiscal. "
         "¿En qué puedo asistirte?"

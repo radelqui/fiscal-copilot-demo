@@ -139,7 +139,7 @@ class TestDashboard:
         r = db_client.get("/dashboard")
         assert r.status_code == 200
         assert "text/html" in r.headers["content-type"]
-        assert "Fiscal Copilot" in r.text
+        assert "Cómo Estoy Hecho" in r.text
         assert "Dashboard" in r.text
 
     def test_dashboard_shows_tables(self, db_client):
