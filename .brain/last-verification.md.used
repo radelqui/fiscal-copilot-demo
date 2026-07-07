@@ -1,40 +1,32 @@
-# Verification Evidence — ORDEN REGISTRY SOLO DEMO
+# Verificación: Demo route fix — normalización centralizada en invoke_agent
 
-## Date: 2026-07-07
+## Fecha: 2026-07-07 ~06:00 UTC
 
-## What changed
-- Created /home/sypnose/.registry/backstage-api/public/demo.html — dedicated single-project page
-- Updated /home/sypnose/.registry/backstage-api/server.js — added /demo route
-- Updated catalog-info.yaml — description in Spanish
+## Qué se cambió
+- app/bedrock_agent.py: _normalize_query movido aquí (cubre /ask Y /demo/token/ask)
+- app/bedrock_agent.py: _guardrail_fallback para fast-path local si guardrail bloquea requisito
+- app/routers/ask.py: eliminada _normalize_guardrail_query duplicada
 
-## Verification
+## Evidencia
 
-### R1: Display Name
+### Tests: 81/81 PASS
 ```
-curl localhost:7009/demo | grep "Cómo Estoy Hecho" → 1 match
-```
-
-### R2: Isolation
-```
-curl localhost:7009/demo | grep -ci "stratos|eagleview|postiz|..." → 0 matches
+======================== 81 passed, 1 warning in 1.52s =========================
 ```
 
-### R3: Content
+### Gate 9+HITL contra URL PÚBLICA (https://naiian.sypnose.cloud/demo/.../ask):
 ```
-/multi/deep/fiscal-copilot → 383 nodes, 481 edges
-/codegraph/file-content → works (lines: 36, size: 869 for app/main.py)
+workflows_structured_outputs: PASS (bedrock)
+agentes_bedrock: PASS (bedrock)
+rag_multifuente: PASS (bedrock)
+eval_harness: PASS (bedrock)
+human_in_the_loop: PASS (bedrock)
+guardrails_controles: PASS (bedrock)
+desarrollo_agentico: PASS (bedrock)
+trade_offs_modelos: PASS (bedrock)
+backend_python: PASS (bedrock)
+HITL: PASS (bedrock)
+FINAL GATE: ALL PASS
 ```
 
-### R4: Sanity
-- Demo page only calls /multi/deep/fiscal-copilot and /codegraph/file-content
-- No /registry/, /api/, /multi/projects, /multi/topology calls
-- No search functionality
-
-### URL for interviewer
-https://registry.sypnose.cloud/demo
-
-### No Cloudflare changes needed
-Cloudflare already routes registry.sypnose.cloud → localhost:7009
-The /demo route is served by Express static + explicit route
-
-## Verdict: PASS
+### Server: mock_mode false, PID 2297115
