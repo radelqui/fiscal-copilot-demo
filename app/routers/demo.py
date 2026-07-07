@@ -131,20 +131,33 @@ async def demo_ask(token: str, request: DemoAskRequest):
 
 @router.get("/{token}/approvals")
 async def demo_approvals(token: str, status: str | None = None):
-    """List approvals (optionally filtered by status)."""
+    """List approvals scoped to demo-visitor tenant, last 15 minutes only."""
     await _require_token(token)
 
     async with get_conn() as conn:
+        # Purge stale pending approvals on every poll so the sidebar stays clean
+        try:
+            await conn.execute(
+                "DELETE FROM approvals WHERE status = 'pending' "
+                "AND created_at < NOW() - INTERVAL '15 minutes'"
+            )
+            await conn.commit()
+        except Exception:
+            logger.exception("Failed to purge stale approvals")
+
+        base_query = (
+            "SELECT id, action, payload, status, created_at "
+            "FROM approvals WHERE tenant_id = 'demo-visitor' "
+            "AND created_at > NOW() - INTERVAL '15 minutes'"
+        )
         if status:
             rows = await conn.execute(
-                "SELECT id, action, payload, status, created_at "
-                "FROM approvals WHERE status = %s ORDER BY created_at DESC",
+                base_query + " AND status = %s ORDER BY created_at DESC",
                 [status],
             )
         else:
             rows = await conn.execute(
-                "SELECT id, action, payload, status, created_at "
-                "FROM approvals ORDER BY created_at DESC"
+                base_query + " ORDER BY created_at DESC"
             )
         results = await rows.fetchall()
 

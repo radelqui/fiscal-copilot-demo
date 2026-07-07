@@ -59,7 +59,7 @@ COMPONENTES = {
     },
     "backend": {
         "nombre": "Backend FastAPI",
-        "descripcion": "FastAPI con auth por token, rate limiting 30 req/hr, cost cap $2/day. PostgreSQL para traces y approvals. Docker Compose.",
+        "descripcion": "FastAPI con auth por token, rate limiting 60 req/hr, cost cap $2/day. PostgreSQL para traces y approvals. Docker Compose.",
         "modelo": "N/A",
         "region": "eu-central-1 (servidor)",
         "recursos": ["FastAPI :7020", "PostgreSQL :5544"],

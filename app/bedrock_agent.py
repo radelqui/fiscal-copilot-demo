@@ -7,6 +7,7 @@ When the real agent returns requireConfirmation, creates an approval
 record in the DB linked to the trace.
 """
 
+import asyncio
 import json
 import os
 import time
@@ -191,7 +192,37 @@ async def _invoke_bedrock(
     query: str,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """Real Bedrock Agent invocation."""
+    """Real Bedrock Agent invocation with 85s timeout (Cloudflare limit is 100s)."""
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(_invoke_bedrock_sync, query, session_id),
+            timeout=85,
+        )
+    except asyncio.TimeoutError:
+        logger.warning("Bedrock invocation timed out after 85s")
+        return {
+            "response": (
+                "⏱ La consulta tardó más de lo esperado. "
+                "El agente de Bedrock está procesando pero el tiempo de espera se agotó. "
+                "Intenta de nuevo o reformula tu pregunta de forma más concreta."
+            ),
+            "tools_used": [],
+            "provider": "bedrock",
+            "model": "eu.anthropic.claude-sonnet-4-6-20250514-v1:0",
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cost_usd": 0.0,
+            "latency_ms": 85000.0,
+            "requires_confirmation": False,
+            "confirmation_payload": None,
+        }
+
+
+def _invoke_bedrock_sync(
+    query: str,
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """Synchronous Bedrock call — runs in a thread via asyncio.to_thread."""
     config = _agent_config or load_agent_config()
     agent_id = config["AGENT_ID"]
     alias_id = config["ALIAS_ID"]

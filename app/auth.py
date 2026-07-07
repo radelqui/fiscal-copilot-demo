@@ -1,7 +1,7 @@
 """Demo token authentication, rate limiting, and cost cap.
 
 Tokens are path-based: /demo/{token}/...
-Rate limit: 30 req/hour per token (in-memory).
+Rate limit: 60 req/hour per token (in-memory).
 Cost cap: $2.00/day across all tokens.
 """
 
@@ -15,7 +15,7 @@ from fastapi import HTTPException
 
 from app.db import get_conn
 
-RATE_LIMIT_PER_HOUR = 30
+RATE_LIMIT_PER_HOUR = 60
 DAILY_COST_CAP_USD = 2.0
 
 _request_log: dict[str, list[float]] = defaultdict(list)

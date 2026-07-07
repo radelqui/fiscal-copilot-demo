@@ -762,6 +762,78 @@
 
         .chip:active { transform: translateY(0); }
 
+        /* ── VERIFY AWS MODAL ── */
+        .verify-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            animation: fadeIn 0.2s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .verify-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            max-width: 520px;
+            width: 90%;
+            box-shadow: var(--shadow);
+        }
+        .verify-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .verify-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .verify-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+        .verify-card.ok { border-color: rgba(34,197,94,0.4); }
+        .verify-card.err { border-color: rgba(239,68,68,0.4); }
+        .verify-icon { font-size: 20px; flex-shrink: 0; }
+        .verify-info { flex: 1; }
+        .verify-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .verify-detail { font-size: 11px; color: var(--text-secondary); }
+        .verify-note {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+        .verify-close {
+            display: block;
+            margin: 12px auto 0;
+            padding: 8px 24px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .verify-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .verify-loading { text-align: center; color: var(--text-muted); padding: 32px; }
+
         /* ── SCROLLBAR RESET ── */
         * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 
@@ -789,6 +861,9 @@
             <div class="dot"></div>
             <span>API activa</span>
         </div>
+        <button class="btn-dashboard" onclick="verificarAWS()" id="btn-verify-aws">
+            🔎 Verificar en AWS
+        </button>
         <a class="btn-dashboard" href="architecture" rel="noopener">
             ◈ Arquitectura
         </a>
@@ -1038,6 +1113,9 @@ async function sendQuery() {
     addUserMessage(text);
     const typingEl = addTypingIndicator();
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
+
     try {
         const res = await fetch(`${BASE}/ask`, {
             method: 'POST',
@@ -1045,7 +1123,8 @@ async function sendQuery() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${TOKEN}`
             },
-            body: JSON.stringify({ query: text, tenant_id: 'demo-visitor' })
+            body: JSON.stringify({ query: text, tenant_id: 'demo-visitor' }),
+            signal: controller.signal,
         });
 
         removeTypingIndicator();
@@ -1083,6 +1162,7 @@ async function sendQuery() {
             addAgentMessage('🔌 No se pudo conectar con la API. Verifica tu conexión.', null, true);
         }
     } finally {
+        clearTimeout(timeoutId);
         isSending = false;
         sendBtn.disabled = false;
         queryInput.focus();
@@ -1243,6 +1323,78 @@ async function decideApproval(id, decision, btn) {
         }
         btns.forEach(b => b.disabled = false);
     }
+}
+
+// ── VERIFY AWS ──
+async function verificarAWS() {
+    const btn = document.getElementById('btn-verify-aws');
+    btn.disabled = true;
+    btn.textContent = '⏳ Consultando AWS...';
+
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'verify-overlay';
+    overlay.innerHTML = '<div class="verify-modal"><div class="verify-loading">⏳ Consultando AWS Bedrock en tiempo real...</div></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); btn.disabled = false; btn.textContent = '🔎 Verificar en AWS'; } });
+
+    try {
+        const res = await fetch(`${BASE}/verificar-aws`, {
+            headers: { 'Authorization': `Bearer ${TOKEN}` }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        const resources = data.resources || {};
+        const labels = {
+            agent: { icon: '🤖', label: 'Bedrock Agent' },
+            knowledge_base: { icon: '📚', label: 'Knowledge Base (RAG)' },
+            guardrail: { icon: '🛡️', label: 'Guardrail' },
+            lambda: { icon: '⚡', label: 'Lambda Function' },
+        };
+
+        let cardsHtml = '';
+        for (const [key, info] of Object.entries(labels)) {
+            const r = resources[key] || {};
+            const ok = r.ok;
+            const icon = ok ? '✅' : '❌';
+            const cls = ok ? 'ok' : 'err';
+            let detail = `Status: ${r.status || 'unknown'}`;
+            if (r.foundation_model) detail += ` · ${r.foundation_model}`;
+            if (r.runtime) detail += ` · ${r.runtime}`;
+            if (r.version) detail += ` · v${r.version}`;
+            cardsHtml += `
+                <div class="verify-card ${cls}">
+                    <div class="verify-icon">${icon}</div>
+                    <div class="verify-info">
+                        <div class="verify-name">${info.icon} ${info.label} ${r.name ? '· ' + escapeHtml(r.name) : ''}</div>
+                        <div class="verify-detail">${escapeHtml(detail)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const ts = data.timestamp ? new Date(data.timestamp).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' UTC' : 'ahora';
+
+        overlay.querySelector('.verify-modal').innerHTML = `
+            <div class="verify-title">🔎 Verificación AWS en Vivo</div>
+            <div class="verify-cards">${cardsHtml}</div>
+            <div class="verify-note">
+                Consultado a las ${ts} — directo de la API de AWS Bedrock<br>
+                <strong>NO está hardcodeado</strong>: cada clic consulta la cuenta AWS en tiempo real
+            </div>
+            <button class="verify-close" onclick="this.closest('.verify-overlay').remove(); document.getElementById('btn-verify-aws').disabled=false; document.getElementById('btn-verify-aws').textContent='🔎 Verificar en AWS';">Cerrar</button>
+        `;
+    } catch (err) {
+        overlay.querySelector('.verify-modal').innerHTML = `
+            <div class="verify-title">❌ Error de verificación</div>
+            <p style="color:var(--text-secondary);font-size:13px;">No se pudo conectar con la API de AWS: ${escapeHtml(err.message)}</p>
+            <button class="verify-close" onclick="this.closest('.verify-overlay').remove(); document.getElementById('btn-verify-aws').disabled=false; document.getElementById('btn-verify-aws').textContent='🔎 Verificar en AWS';">Cerrar</button>
+        `;
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🔎 Verificar en AWS';
 }
 
 // ── KICK OFF ──
