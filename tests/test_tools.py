@@ -36,6 +36,78 @@ class TestExplicarComponente:
         r = explicar_componente("action-groups")
         assert r.componente == "action_groups"
 
+    def test_desarrollo_agentico(self):
+        r = explicar_componente("desarrollo_agentico")
+        assert r.nombre == "Desarrollo Agéntico"
+        assert "AGENTS.md" in r.archivo_clave
+
+    def test_multi_model(self):
+        r = explicar_componente("multi_model")
+        assert r.nombre == "Comparativa Multi-Modelo"
+        assert "router.py" in r.archivo_clave
+
+
+class TestDetectarRequisito:
+    def test_action_flows_maps_to_bedrock(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("agentes sobre AWS Bedrock con action flows, permisos, estados y trazabilidad")
+        assert r is not None
+        assert "bedrock_agent" in r.componentes
+        assert "Bedrock Agent" in r.confirma
+
+    def test_rag_multifuente(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("RAG retrieval-aware sobre múltiples fuentes, source attribution")
+        assert r is not None
+        assert "rag" in r.componentes
+
+    def test_eval_harness(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("eval harnesses para medir factualidad, completitud, coste y latencia")
+        assert r is not None
+        assert "evals" in r.componentes
+
+    def test_hitl(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("human-in-the-loop: revisión, aprobación, rechazo y escalado")
+        assert r is not None
+        assert "hitl" in r.componentes
+
+    def test_guardrails(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("guardrails, límites y controles contra prompt injection")
+        assert r is not None
+        assert "guardrails" in r.componentes
+
+    def test_desarrollo_agentico_req(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("desarrollo agéntico: specs, coding agents, Skills y evals")
+        assert r is not None
+        assert "desarrollo_agentico" in r.componentes
+
+    def test_tradeoffs(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("trade-offs entre modelos (coste, latencia, calidad)")
+        assert r is not None
+        assert "multi_model" in r.componentes
+
+    def test_no_match_returns_none(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("¿Cuánto cuesta un helado?")
+        assert r is None
+
+    def test_backend_python(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("backend Python/FastAPI, manejo de errores, APIs de LLM y PostgreSQL")
+        assert r is not None
+        assert "backend" in r.componentes
+
+    def test_workflows_structured(self):
+        from app.tools.explicar_componente import detectar_requisito
+        r = detectar_requisito("workflows structured outputs y tool calling")
+        assert r is not None
+        assert "action_groups" in r.componentes
+
 
 class TestDondeVerificar:
     def test_bedrock_agent(self):

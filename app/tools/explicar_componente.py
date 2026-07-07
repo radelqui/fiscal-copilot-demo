@@ -65,6 +65,70 @@ COMPONENTES = {
         "recursos": ["FastAPI :7020", "PostgreSQL :5544"],
         "archivo_clave": "app/main.py",
     },
+    "desarrollo_agentico": {
+        "nombre": "Desarrollo Agéntico",
+        "descripcion": "Specs escritas antes del código (specs/), coding agents (Claude Code + arquitectos), Skills (.claude/skills/), AGENTS.md como manifiesto del equipo, y evals que verifican cada cambio.",
+        "modelo": "N/A",
+        "region": "N/A",
+        "recursos": ["specs/", ".claude/skills/", "AGENTS.md"],
+        "archivo_clave": "AGENTS.md",
+    },
+    "multi_model": {
+        "nombre": "Comparativa Multi-Modelo",
+        "descripcion": "Comparativa de rutas de modelo (Bedrock Sonnet/Haiku, OpenAI GPT-4o-mini, Nova Micro) por coste, latencia y calidad. Router en evals/router.py, resultados en reports/comparativa.md.",
+        "modelo": "N/A",
+        "region": "N/A",
+        "recursos": ["evals/router.py", "reports/comparativa.md"],
+        "archivo_clave": "evals/router.py",
+    },
+}
+
+REQUISITOS = {
+    "workflows_structured_outputs": {
+        "keywords": ["workflow", "structured output", "tool calling", "pydantic"],
+        "componentes": ["action_groups", "backend"],
+        "confirma": "Sí. Construyo workflows con structured outputs (schemas Pydantic estrictos I/O) y tool calling (action group Lambda con functionSchema tipado).",
+    },
+    "agentes_bedrock": {
+        "keywords": ["action flow", "permisos", "estados", "trazabilidad", "agentes sobre", "bedrock agent"],
+        "componentes": ["bedrock_agent", "action_groups", "hitl", "observabilidad"],
+        "confirma": "Sí. Soy un Bedrock Agent (2BOPZRAI7X) con action flows (action group → Lambda), permisos (rol IAM del agente + de la Lambda), estados (sesión + HITL returnControl con checkpoints) y trazabilidad (cada paso emite trace events que persisto en PostgreSQL).",
+    },
+    "rag_multifuente": {
+        "keywords": ["rag", "retrieval", "source attribution", "trazabilidad de contexto", "múltiples fuentes", "multi-fuente"],
+        "componentes": ["rag"],
+        "confirma": "Sí. RAG con Knowledge Base sobre S3 Vectors, corpus multi-fuente, y cada respuesta cita la fuente recuperada (source attribution).",
+    },
+    "eval_harness": {
+        "keywords": ["eval harness", "factualidad", "completitud", "medir", "ragas", "deepeval"],
+        "componentes": ["evals", "observabilidad"],
+        "confirma": "Sí. Eval harness con golden set + Ragas (faithfulness/relevancy) + DeepEval (GEval) para factualidad y completitud, y trazas que miden coste y latencia reales por request.",
+    },
+    "human_in_the_loop": {
+        "keywords": ["human-in-the-loop", "human in the loop", "revisión", "aprobación", "rechazo", "escalado", "retries", "checkpoints"],
+        "componentes": ["hitl"],
+        "confirma": "Sí. HITL con returnControl de Bedrock: acciones sensibles pausan y piden aprobación humana (aprobar/rechazar), con estado persistido para no perder contexto al reanudar.",
+    },
+    "guardrails_controles": {
+        "keywords": ["guardrail", "límites", "controles", "prompt injection", "inyección"],
+        "componentes": ["guardrails", "backend"],
+        "confirma": "Sí. Guardrail de Bedrock (denied topics + prompt-attack) contra inyección, más límites de rate y de coste en el backend.",
+    },
+    "desarrollo_agentico": {
+        "keywords": ["desarrollo agéntico", "desarrollo agentico", "coding agent", "specs", "skills"],
+        "componentes": ["desarrollo_agentico"],
+        "confirma": "Sí. Me construí con desarrollo agéntico: specs primero (specs/), coding agents (Claude Code + arquitectos), Skills (.claude/skills/), AGENTS.md, y evals que verifican cada cambio.",
+    },
+    "trade_offs_modelos": {
+        "keywords": ["trade-off", "tradeoff", "trade off", "coste", "latencia", "calidad", "contexto", "portabilidad", "comparativa", "entre modelos"],
+        "componentes": ["multi_model"],
+        "confirma": "Sí. Comparo rutas de modelo (Bedrock/OpenAI/Nova) por coste, latencia y calidad; ver reports/comparativa.md.",
+    },
+    "backend_python": {
+        "keywords": ["backend python", "fastapi", "manejo de errores", "apis de llm", "postgresql"],
+        "componentes": ["backend", "observabilidad"],
+        "confirma": "Sí. Backend FastAPI con manejo robusto de errores, integración con APIs de LLM (Bedrock) y PostgreSQL para traces y approvals.",
+    },
 }
 
 @dataclass
@@ -76,6 +140,45 @@ class ResultadoComponente:
     region: str
     recursos: list[str] = field(default_factory=list)
     archivo_clave: str = ""
+
+@dataclass
+class ResultadoRequisito:
+    requisito_id: str
+    confirma: str
+    componentes: list[str] = field(default_factory=list)
+    detalles: list[dict] = field(default_factory=list)
+
+
+def detectar_requisito(query: str) -> ResultadoRequisito | None:
+    """Detect if user text matches a vacancy requirement and return confirmation."""
+    q = query.lower()
+    best_match = None
+    best_score = 0
+    for req_id, req in REQUISITOS.items():
+        score = sum(1 for kw in req["keywords"] if kw in q)
+        if score > best_score:
+            best_score = score
+            best_match = req_id
+    if best_score < 2:
+        return None
+    req = REQUISITOS[best_match]
+    detalles = []
+    for comp_id in req["componentes"]:
+        if comp_id in COMPONENTES:
+            c = COMPONENTES[comp_id]
+            detalles.append({
+                "componente": comp_id,
+                "nombre": c["nombre"],
+                "archivo_clave": c["archivo_clave"],
+                "recursos": c["recursos"],
+            })
+    return ResultadoRequisito(
+        requisito_id=best_match,
+        confirma=req["confirma"],
+        componentes=req["componentes"],
+        detalles=detalles,
+    )
+
 
 def explicar_componente(componente: str) -> ResultadoComponente:
     componente = (componente or "").strip().lower().replace(" ", "_").replace("-", "_")

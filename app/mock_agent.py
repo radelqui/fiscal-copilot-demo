@@ -10,10 +10,15 @@ from typing import Any
 from app.tools.explicar_componente import explicar_componente, COMPONENTES
 from app.tools.donde_verificar import donde_verificar
 from app.tools.generar_reporte_arquitectura import generar_reporte_arquitectura
+from app.tools.explicar_componente import detectar_requisito
 from app.agent.system_prompt import SYSTEM_PROMPT
 
 
 def _detect_intent(query: str) -> str:
+    # Check for vacancy requirement match FIRST
+    from app.tools.explicar_componente import detectar_requisito as _dr
+    if _dr(query) is not None:
+        return "requisito_vacante"
     q = query.lower()
     if any(w in q for w in ["reporte", "report", "genera", "publica"]):
         return "generar_reporte_arquitectura"
@@ -85,6 +90,31 @@ def mock_invoke_agent(query: str) -> dict[str, Any]:
             f"- **Recursos**: {', '.join(result.recursos)}\n"
             f"- **Archivo clave**: `{result.archivo_clave}`\n\n"
             f"Puedes verificarlo: registry.sypnose.cloud > CodeGraph > fiscal-copilot > `{result.archivo_clave}`"
+        )
+
+    elif intent == "requisito_vacante":
+        req_result = detectar_requisito(query)
+        comp_details = []
+        for comp_id in req_result.componentes:
+            try:
+                comp = explicar_componente(comp_id)
+                comp_details.append(f"- **{comp.nombre}**: {comp.descripcion} → `{comp.archivo_clave}`")
+            except ValueError:
+                pass
+        tools_used.append({
+            "tool_name": "explicar_componente",
+            "tool_input": {"requisito": query},
+            "tool_output": {
+                "requisito_id": req_result.requisito_id,
+                "confirma": req_result.confirma,
+                "componentes": req_result.componentes,
+            },
+        })
+        response = (
+            f"✅ Sí, cumplo este requisito: {req_result.confirma}\n\n"
+            f"**Componentes involucrados:**\n"
+            + "\n".join(comp_details)
+            + "\n\nVerifícalo en: registry.sypnose.cloud > CodeGraph > fiscal-copilot"
         )
 
     elif intent == "donde_verificar":
