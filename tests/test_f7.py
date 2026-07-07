@@ -278,3 +278,15 @@ class TestCostCap:
             loop2.close()
 
         reset_rate_limits()
+
+
+class TestArchitecture:
+    def test_architecture_valid_token(self, db_client, demo_token):
+        r = db_client.get(f"/demo/{demo_token}/architecture")
+        assert r.status_code == 200
+        assert "Fiscal Copilot" in r.text
+        assert "mermaid" in r.text.lower() or "Arquitectura" in r.text
+
+    def test_architecture_invalid_token(self, db_client):
+        r = db_client.get("/demo/invalid-token-xyz/architecture")
+        assert r.status_code == 401

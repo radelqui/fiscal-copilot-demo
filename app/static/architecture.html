@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fiscal Copilot — Arquitectura</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-base: #0f172a;
+            --bg-card: #1e293b;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.15);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+        body {
+            background: var(--bg-base);
+            color: var(--text-primary);
+            font-family: system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 0;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 56px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .header-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-nav:hover {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+        }
+        .content {
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 24px;
+        }
+        .diagram-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+        .diagram-container .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .legend-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+        }
+        .legend-card h3 {
+            color: var(--accent);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .legend-card p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .legend-card code {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        h2 {
+            color: var(--text-primary);
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+        .ascii-fallback {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: pre;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-left">
+        <span class="header-title">Fiscal Copilot</span>
+        <span class="header-badge">Arquitectura</span>
+    </div>
+    <div class="header-right">
+        <a class="btn-nav" href="javascript:history.back()">← Demo</a>
+        <a class="btn-nav" href="/dashboard" target="_blank">↗ Dashboard</a>
+        <a class="btn-nav" href="/metrics" target="_blank">↗ Metrics</a>
+    </div>
+</header>
+
+<div class="content">
+    <h2>Flujo del Sistema</h2>
+
+    <div class="diagram-container">
+        <div class="mermaid">
+graph TB
+    subgraph Browser["🌐 Navegador"]
+        UI["demo.html<br/>(chat + aprobaciones)"]
+    end
+
+    subgraph SRV["Servidor 67 · Frankfurt"]
+        subgraph FastAPI[":7020 FastAPI"]
+            AUTH["Auth<br/>token + rate limit<br/>+ cost cap $2/día"]
+            AGENT["bedrock_agent.py<br/>invoke_agent(enableTrace)"]
+            METRICS_EP["/metrics<br/>p50 · p95 · by_model"]
+            DASH["/dashboard<br/>HTML observabilidad"]
+        end
+        subgraph PG[":5544 PostgreSQL"]
+            TRACES[("traces<br/>tokens · coste · latencia")]
+            APPROVALS[("approvals<br/>pending · approved · rejected")]
+        end
+    end
+
+    subgraph AWS["☁️ AWS eu-central-1"]
+        subgraph BAgent["Bedrock Agent 2BOPZRAI7X<br/>Sonnet 4.6"]
+            GUARD["Guardrail xgn38kcg6hrq<br/>prompt attack · denied topics"]
+            KB["KB 5I5RDNA2V1<br/>S3 Vectors · Titan V2<br/>corpus DGII"]
+            subgraph AG["Action Group fiscal-tools"]
+                LAMBDA["Lambda fiscal-copilot-tools"]
+                ITBIS["calcular_itbis"]
+                NCF["validar_ncf"]
+                F606["presentar_formato_606<br/>⚠️ requireConfirmation"]
+            end
+        end
+    end
+
+    subgraph Evals["📊 Evals (offline)"]
+        GS["golden_set.jsonl<br/>8 casos"]
+        JUDGES["judges.py<br/>faithfulness · relevancy<br/>context_precision · geval"]
+        ROUTER["router.py<br/>Haiku · Nova · GPT-4o · Sonnet"]
+        REPORT["comparativa.md"]
+    end
+
+    UI -->|"POST /ask"| AUTH
+    AUTH --> AGENT
+    AGENT -->|"invoke_agent"| BAgent
+    BAgent --> GUARD
+    BAgent --> KB
+    BAgent --> AG
+    LAMBDA --> ITBIS
+    LAMBDA --> NCF
+    LAMBDA --> F606
+    F606 -->|"returnControl"| AGENT
+    AGENT -->|"approval pendiente"| APPROVALS
+    AGENT -->|"traza completa"| TRACES
+    UI -->|"aprobar/rechazar"| APPROVALS
+    METRICS_EP --> TRACES
+    DASH --> TRACES
+    GS --> JUDGES
+    GS --> ROUTER
+    JUDGES --> REPORT
+    ROUTER --> REPORT
+
+    classDef aws fill:#1a365d,stroke:#3182ce,color:#bee3f8
+    classDef srv fill:#1a202c,stroke:#4a5568,color:#e2e8f0
+    classDef pg fill:#22543d,stroke:#38a169,color:#c6f6d5
+    classDef hitl fill:#744210,stroke:#d69e2e,color:#fefcbf
+    classDef eval fill:#322659,stroke:#805ad5,color:#e9d8fd
+
+    class BAgent,GUARD,KB,AG,LAMBDA,ITBIS,NCF aws
+    class F606 hitl
+    class TRACES,APPROVALS pg
+    class GS,JUDGES,ROUTER,REPORT eval
+        </div>
+    </div>
+
+    <pre class="ascii-fallback" id="ascii-fallback">
+Navegador (token)
+  │
+  ▼
+FastAPI :7020 ─── auth (token + rate limit + cost cap $2/día)
+  │
+  ▼
+bedrock_agent.py ── invoke_agent(enableTrace=True)
+  │
+  ▼
+AWS Bedrock Agent 2BOPZRAI7X (eu-central-1, Sonnet 4.6)
+  ├── Guardrail xgn38kcg6hrq (prompt attack + denied topics)
+  ├── RAG: KB 5I5RDNA2V1 → S3 Vectors (Titan V2, corpus DGII)
+  └── Action Group fiscal-tools → Lambda
+       ├── calcular_itbis
+       ├── validar_ncf
+       └── presentar_formato_606 [HITL: returnControl → bandeja → aprobar/rechazar]
+  │
+  ▼
+PostgreSQL :5544
+  ├── traces (tokens, coste, latencia, tools por tenant)
+  └── approvals (estados HITL: pending → approved/rejected)
+  │
+  ▼
+/metrics + /dashboard (observabilidad por modelo/tenant/coste)
+
+Evals offline: golden_set → judges (Ragas + GEval) → comparativa.md
+               golden_set → router (Haiku/Nova/GPT-4o/Sonnet) → comparativa.md
+    </pre>
+
+    <h2>Componentes</h2>
+    <div class="legend">
+        <div class="legend-card">
+            <h3>Auth + Rate Limiting</h3>
+            <p>Token de 14 días, 30 req/hora, cap $2/día.<br/>
+            <code>app/auth.py</code></p>
+        </div>
+        <div class="legend-card">
+            <h3>Bedrock Agent</h3>
+            <p>Agent <code>2BOPZRAI7X</code> con Sonnet 4.6. enableTrace extrae tokens reales de cada paso.<br/>
+            <code>app/bedrock_agent.py</code></p>
+        </div>
+        <div class="legend-card">
+            <h3>Knowledge Base (RAG)</h3>
+            <p>KB <code>5I5RDNA2V1</code> con S3 Vectors. Titan V2 1024d. Corpus fiscal DGII con source attribution.<br/>
+            Corpus local: <code>app/rag/corpus/</code></p>
+        </div>
+        <div class="legend-card">
+            <h3>Guardrail</h3>
+            <p>Guardrail <code>xgn38kcg6hrq</code>: bloquea prompt injection, temas off-topic, PII.<br/>
+            Test: <code>evals/golden_set.jsonl</code> caso injection-001</p>
+        </div>
+        <div class="legend-card">
+            <h3>Tools (Action Group)</h3>
+            <p>Lambda <code>fiscal-copilot-tools</code>: calcular_itbis, validar_ncf, presentar_formato_606.<br/>
+            <code>aws/lambda/handler.py</code> · <code>app/tools/</code></p>
+        </div>
+        <div class="legend-card">
+            <h3>HITL (Human-in-the-Loop)</h3>
+            <p>presentar_formato_606 con requireConfirmation. returnControl → bandeja → aprobar/rechazar.<br/>
+            <code>specs/hitl-workflow.md</code> · <code>app/routers/demo.py</code></p>
+        </div>
+        <div class="legend-card">
+            <h3>Observabilidad</h3>
+            <p>PostgreSQL persiste cada traza: tokens, coste, latencia, tools, por tenant y modelo.<br/>
+            <code>/metrics</code> (JSON p50/p95) · <code>/dashboard</code> (HTML)</p>
+        </div>
+        <div class="legend-card">
+            <h3>Evals Pipeline</h3>
+            <p>8 casos golden set. 4 métricas LLM-as-Judge (Haiku). Router 4 modelos. Coste $0.018.<br/>
+            <code>evals/</code> · <code>reports/comparativa.md</code></p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load mermaid from CDN, fallback to ASCII if unavailable
+(function() {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+    script.onload = function() {
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#1e293b',
+                primaryTextColor: '#f1f5f9',
+                primaryBorderColor: '#38bdf8',
+                lineColor: '#64748b',
+                secondaryColor: '#1a365d',
+                tertiaryColor: '#0f172a',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontSize: '13px',
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+            },
+        });
+    };
+    script.onerror = function() {
+        // CDN failed — show ASCII fallback
+        document.querySelector('.diagram-container').style.display = 'none';
+        document.getElementById('ascii-fallback').style.display = 'block';
+    };
+    document.head.appendChild(script);
+})();
+</script>
+
+</body>
+</html>

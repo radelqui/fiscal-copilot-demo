@@ -52,6 +52,14 @@ async def demo_page(token: str):
     return HTMLResponse(content=page)
 
 
+@router.get("/{token}/architecture", response_class=HTMLResponse)
+async def architecture_page(token: str):
+    """Serve the architecture diagram page."""
+    await _require_token(token)
+    path = Path(__file__).parent.parent / "static" / "architecture.html"
+    return HTMLResponse(content=path.read_text(encoding="utf-8"))
+
+
 @router.post("/{token}/ask")
 async def demo_ask(token: str, request: DemoAskRequest):
     """Chat endpoint with auth, rate limit, and cost cap."""
